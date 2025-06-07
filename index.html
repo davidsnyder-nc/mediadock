@@ -681,32 +681,34 @@
             }
 
             try {
-                // Get TV show details from TMDB
-                const showData = await makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${userSettings.tmdbApi}`);
+                // Get TV show details from TMDB with external IDs
+                const [showData, externalIds] = await Promise.all([
+                    makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${userSettings.tmdbApi}`),
+                    makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}/external_ids?api_key=${userSettings.tmdbApi}`)
+                ]);
                 
-                // Get Sonarr root folders and quality profiles
-                const [rootFolders, qualityProfiles] = await Promise.all([
+                // Get Sonarr root folders, quality profiles, and language profiles
+                const [rootFolders, qualityProfiles, languageProfiles] = await Promise.all([
                     makeApiRequest(`${userSettings.sonarrUrl}/api/v3/rootfolder?apikey=${userSettings.sonarrApi}`),
-                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/qualityprofile?apikey=${userSettings.sonarrApi}`)
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/qualityprofile?apikey=${userSettings.sonarrApi}`),
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/languageprofile?apikey=${userSettings.sonarrApi}`)
                 ]);
 
-                // Use first available root folder and quality profile
+                // Use first available options
                 const rootFolderPath = rootFolders[0]?.path || "/tv/";
                 const qualityProfileId = qualityProfiles[0]?.id || 1;
-                
-                // Get language profiles from Sonarr
-                const languageProfiles = await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/languageprofile?apikey=${userSettings.sonarrApi}`);
                 const languageProfileId = languageProfiles[0]?.id || 1;
 
-                // Convert TMDB data to Sonarr format with minimal required fields
+                // Convert TMDB data to Sonarr format
                 const sonarrPayload = {
                     title: showData.name,
                     qualityProfileId: qualityProfileId,
                     languageProfileId: languageProfileId,
                     rootFolderPath: rootFolderPath,
-                    tvdbId: 0,
+                    tvdbId: externalIds.tvdb_id || 0,
                     monitored: true,
                     seasonFolder: true,
+                    seriesType: "standard",
                     addOptions: { 
                         searchForMissingEpisodes: true 
                     }

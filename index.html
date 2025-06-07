@@ -784,6 +784,7 @@
             
             if (!query.trim()) {
                 // Show default content when search is empty
+                movieSearchHeader.innerHTML = '';
                 if (defaultContent) defaultContent.style.display = 'block';
                 movieResultsContainer.innerHTML = movieResultsContainer.innerHTML.includes('movie-default-content') ? movieResultsContainer.innerHTML : '';
                 return;
@@ -889,6 +890,8 @@
             
             if (!query.trim()) {
                 // Show default content when search is empty
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
                 if (defaultContent) defaultContent.style.display = 'block';
                 tvResultsContainer.innerHTML = tvResultsContainer.innerHTML.includes('tv-default-content') ? tvResultsContainer.innerHTML : '';
                 return;
@@ -957,6 +960,8 @@
                     tvResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No TV shows found</p>';
                 }
             } catch (error) {
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
                 tvResultsContainer.innerHTML = '<p class="text-red-400 text-center py-8">Error searching TV shows. Check your API key.</p>';
                 showNotification('Failed to search TV shows', 'error');
             }

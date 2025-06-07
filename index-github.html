@@ -305,6 +305,7 @@
                          <i data-lucide="search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     </div>
                     <div class="overflow-y-auto no-scrollbar flex-grow">
+                        <div id="movie-search-header" class="mb-4"></div>
                         <div id="movie-results" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Default content when no search results -->
                             <div id="movie-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
@@ -336,6 +337,7 @@
                     </div>
                     <div id="tv-content-area" class="overflow-y-auto no-scrollbar flex-grow">
                         <div id="sonarr-calendar" class="space-y-1 hidden"></div>
+                        <div id="tv-search-header" class="mb-4 hidden"></div>
                         <div id="tv-results" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Default content when no search results -->
                             <div id="tv-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
@@ -483,7 +485,9 @@
         const movieSearchInput = document.getElementById('movie-search');
         const tvSearchInput = document.getElementById('tv-search');
         const movieResultsContainer = document.getElementById('movie-results');
+        const movieSearchHeader = document.getElementById('movie-search-header');
         const tvResultsContainer = document.getElementById('tv-results');
+        const tvSearchHeader = document.getElementById('tv-search-header');
         const sabnzbdHistoryContainer = document.getElementById('sabnzbd-history');
         const sonarrCalendarContainer = document.getElementById('sonarr-calendar');
         const notificationModal = document.getElementById('notification-modal');
@@ -780,6 +784,7 @@
             
             if (!query.trim()) {
                 // Show default content when search is empty
+                movieSearchHeader.innerHTML = '';
                 if (defaultContent) defaultContent.style.display = 'block';
                 movieResultsContainer.innerHTML = movieResultsContainer.innerHTML.includes('movie-default-content') ? movieResultsContainer.innerHTML : '';
                 return;
@@ -828,8 +833,9 @@
                 }
                 
                 if (allResults.length > 0) {
-                    const headerHtml = resultHeader ? `<div class="text-center mb-4"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
-                    movieResultsContainer.innerHTML = headerHtml + allResults.map(createMovieCard).join('');
+                    // Set header separately
+                    movieSearchHeader.innerHTML = resultHeader ? `<div class="text-center mb-2"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
+                    movieResultsContainer.innerHTML = allResults.map(createMovieCard).join('');
                     lucide.createIcons();
                     
                     // Load Gemini descriptions for each movie
@@ -841,9 +847,11 @@
                         }
                     });
                 } else {
+                    movieSearchHeader.innerHTML = '';
                     movieResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No movies found</p>';
                 }
             } catch (error) {
+                movieSearchHeader.innerHTML = '';
                 movieResultsContainer.innerHTML = '<p class="text-red-400 text-center py-8">Error searching movies. Check your API key.</p>';
                 showNotification('Failed to search movies', 'error');
             }
@@ -882,6 +890,8 @@
             
             if (!query.trim()) {
                 // Show default content when search is empty
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
                 if (defaultContent) defaultContent.style.display = 'block';
                 tvResultsContainer.innerHTML = tvResultsContainer.innerHTML.includes('tv-default-content') ? tvResultsContainer.innerHTML : '';
                 return;
@@ -930,8 +940,10 @@
                 }
                 
                 if (allResults.length > 0) {
-                    const headerHtml = resultHeader ? `<div class="text-center mb-4"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
-                    tvResultsContainer.innerHTML = headerHtml + allResults.map(createTvCard).join('');
+                    // Set header separately
+                    tvSearchHeader.innerHTML = resultHeader ? `<div class="text-center mb-2"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
+                    tvSearchHeader.classList.remove('hidden');
+                    tvResultsContainer.innerHTML = allResults.map(createTvCard).join('');
                     lucide.createIcons();
                     
                     // Load Gemini descriptions for each TV show
@@ -943,9 +955,13 @@
                         }
                     });
                 } else {
+                    tvSearchHeader.innerHTML = '';
+                    tvSearchHeader.classList.add('hidden');
                     tvResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No TV shows found</p>';
                 }
             } catch (error) {
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
                 tvResultsContainer.innerHTML = '<p class="text-red-400 text-center py-8">Error searching TV shows. Check your API key.</p>';
                 showNotification('Failed to search TV shows', 'error');
             }

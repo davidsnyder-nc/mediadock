@@ -1,6 +1,19 @@
 # MediaDock Local Configuration
 index.html
 
+# Security - Prevent exposure of sensitive data
+attached_assets/browser*.txt
+attached_assets/*console*.txt
+attached_assets/*.log
+**/browser_console*.txt
+**/console_logs*.txt
+
+# API Keys and Configuration Files
+config.json
+.env.local
+.env.production
+*.env
+
 # Python
 __pycache__/
 *.py[cod]

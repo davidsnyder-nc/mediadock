@@ -54,7 +54,7 @@ cd mediadock
 cp index-github.html index.html
 ```
 
-3. Edit the `userSettings` object in `index.html` (around line 467) with your API keys:
+3. Edit the `userSettings` object in `index.html` (around line 530) with your API keys:
 ```javascript
 let userSettings = {
     sonarrUrl: "http://your-server-ip:8989",
@@ -238,6 +238,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Lucide](https://lucide.dev/) for icons
 
 ## Recent Updates
+
+### v2.1.1 - Security & Documentation Update
+- ✅ Removed exposed API keys from all files for security compliance
+- ✅ Enhanced .gitignore to prevent future exposure of sensitive data
+- ✅ Updated documentation with correct line numbers and security best practices
+- ✅ Cleaned up attached assets to remove console logs containing API keys
 
 ### v2.1.0 - Enhanced User Experience
 - ✅ Fixed card flip animations with persistent titles during transitions

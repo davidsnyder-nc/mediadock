@@ -539,11 +539,15 @@
                     userSettings = await response.json();
                     console.log('Loading settings from config.json:', userSettings);
                 } else {
-                    throw new Error('Config file not found');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Failed to load config.json:', error);
-                showNotification('Please create config.json from config.example.json', 'error');
+                if (error.message.includes('404') || error.message.includes('Not Found')) {
+                    showNotification('Please create config.json from config.example.json', 'error');
+                } else {
+                    showNotification('Error loading configuration file', 'error');
+                }
                 userSettings = {};
             }
         };
@@ -1027,7 +1031,7 @@
                 }
             } catch (error) {
                 sonarrCalendarContainer.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load calendar</p>';
-                showNotification('Failed to load Sonarr calendar', 'error');
+                console.warn('Sonarr calendar unavailable:', error.message);
             }
         };
 

@@ -697,11 +697,48 @@
                 // Convert TMDB data to Sonarr format
                 const sonarrPayload = {
                     title: showData.name,
+                    alternateTitles: [],
+                    sortTitle: showData.name.toLowerCase(),
+                    seasonCount: showData.number_of_seasons || 1,
+                    totalEpisodeCount: 0,
+                    episodeCount: 0,
+                    episodeFileCount: 0,
+                    sizeOnDisk: 0,
+                    status: "continuing",
+                    overview: showData.overview || "",
+                    previousAiring: null,
+                    network: showData.networks?.[0]?.name || "",
+                    airTime: null,
+                    images: [],
+                    seasons: [],
+                    year: showData.first_air_date ? new Date(showData.first_air_date).getFullYear() : 0,
+                    path: `${rootFolderPath}${showData.name}`,
                     qualityProfileId: qualityProfileId,
+                    languageProfileId: 1,
+                    seasonFolder: true,
                     monitored: true,
-                    tvdbId: 0, // Sonarr can work without TVDB ID for TMDB-based shows
+                    useSceneNumbering: false,
+                    runtime: showData.episode_run_time?.[0] || 0,
+                    tvdbId: 0,
+                    tvRageId: 0,
+                    tvMazeId: 0,
+                    firstAired: showData.first_air_date || null,
+                    lastInfoSync: null,
+                    seriesType: "standard",
+                    cleanTitle: showData.name.toLowerCase().replace(/[^\w\s]/gi, ''),
+                    imdbId: "",
+                    titleSlug: showData.name.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-'),
+                    certification: "",
+                    genres: showData.genres?.map(g => g.name) || [],
+                    tags: [],
+                    added: new Date().toISOString(),
+                    ratings: { votes: 0, value: 0 },
                     rootFolderPath: rootFolderPath,
-                    addOptions: { searchForMissingEpisodes: true }
+                    addOptions: { 
+                        ignoreEpisodesWithFiles: false,
+                        ignoreEpisodesWithoutFiles: false,
+                        searchForMissingEpisodes: true 
+                    }
                 };
 
                 await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`, {

@@ -500,6 +500,15 @@
                 if (data.results && data.results.length > 0) {
                     tvResultsContainer.innerHTML = data.results.map(createTvCard).join('');
                     lucide.createIcons();
+                    
+                    // Load Gemini descriptions for each TV show
+                    data.results.forEach(async (show) => {
+                        const description = await getGeminiDescription(show.name, show.overview);
+                        const descElement = document.getElementById(`gemini-desc-${show.id}`);
+                        if (descElement) {
+                            descElement.textContent = description;
+                        }
+                    });
                 } else {
                     tvResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No TV shows found</p>';
                 }

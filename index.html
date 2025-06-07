@@ -92,8 +92,8 @@
             justify-content: space-evenly; /* Changed to space-evenly */
             align-items: center;
             padding: 1rem;
-            background-color: rgba(22, 33, 62, 0.85); /* Dark blue overlay */
-            backdrop-filter: blur(8px);
+            background-color: rgba(22, 33, 62, 0.75); /* Reduced opacity to show background */
+            backdrop-filter: blur(4px); /* Reduced blur */
         }
         
         .form-input {
@@ -335,9 +335,7 @@
                             <div class="card-image-container flex-1" style="background-image: url('${posterUrl}')">
                             </div>
                         </div>
-                        <div class="card-face card-face-back">
-                            <div class="card-image-container" style="background-image: url('${posterUrl}'); opacity: 0.7;">
-                            </div>
+                        <div class="card-face card-face-back" style="background-image: url('${posterUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
                             <div class="card-back-overlay">
                                 <div class="text-center space-y-4">
                                     <h3 class="text-white font-bold text-lg">${movie.title}</h3>
@@ -352,6 +350,9 @@
                                         </button>
                                         <button onclick="watchTrailer('${movie.id}'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
                                             <i data-lucide="play" class="w-4 h-4 inline mr-1"></i>Watch Trailer
+                                        </button>
+                                        <button onclick="window.open('https://www.themoviedb.org/movie/${movie.id}', '_blank'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                            <i data-lucide="external-link" class="w-4 h-4 inline mr-1"></i>View on TMDB
                                         </button>
                                     </div>
                                 </div>
@@ -379,9 +380,7 @@
                             <div class="card-image-container flex-1" style="background-image: url('${posterUrl}')">
                             </div>
                         </div>
-                        <div class="card-face card-face-back">
-                            <div class="card-image-container" style="background-image: url('${posterUrl}'); opacity: 0.7;">
-                            </div>
+                        <div class="card-face card-face-back" style="background-image: url('${posterUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
                             <div class="card-back-overlay">
                                 <div class="text-center space-y-4">
                                     <h3 class="text-white font-bold text-lg">${show.name}</h3>
@@ -396,6 +395,9 @@
                                         </button>
                                         <button onclick="watchTrailer('${show.id}', 'tv'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
                                             <i data-lucide="play" class="w-4 h-4 inline mr-1"></i>Watch Trailer
+                                        </button>
+                                        <button onclick="window.open('https://www.themoviedb.org/tv/${show.id}', '_blank'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                            <i data-lucide="external-link" class="w-4 h-4 inline mr-1"></i>View on TMDB
                                         </button>
                                     </div>
                                 </div>

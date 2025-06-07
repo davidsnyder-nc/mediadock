@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Hub</title>
+    <title>MediaDock</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -385,7 +385,7 @@
         <!-- Desktop Sidebar (hidden on mobile) -->
         <div class="desktop-sidebar hidden md:flex">
             <div class="desktop-nav">
-                <h2>Media Hub</h2>
+                <h2>MediaDock</h2>
                 <div class="desktop-nav-item" data-page="movies-page">
                     <i data-lucide="film"></i>
                     <span>Movies</span>
@@ -455,7 +455,7 @@
         // --- App State & Config ---
         let currentPage = 'movies-page';
         let searchTimeout;
-        const SETTINGS_KEY = 'mediaHubSettings';
+        const SETTINGS_KEY = 'mediaDockSettings';
         const defaultSettings = {
             sonarrUrl: 'http://192.168.1.20:8989', 
             sonarrApi: 'd5c8a95b50ca4eb6ac7c34d64a1b5069',

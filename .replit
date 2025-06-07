@@ -13,10 +13,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Media Hub Server"
+args = "MediaDock Server"
 
 [[workflows.workflow]]
-name = "Media Hub Server"
+name = "MediaDock Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]

@@ -103,18 +103,22 @@ MediaDock uses embedded configuration directly in the HTML file. This approach w
    - **Radarr**: Enter server URL and API key from Settings > General > Security
    - **SABnzbd**: Enter server URL and API key from Config > General > API Key
 
-### Alternative: Settings Page Configuration
+### In-App Settings Configuration
 
-If you prefer to use the web interface to generate your configuration:
+MediaDock includes a comprehensive Settings page for easy configuration:
 
-1. Start the server with a basic config.json (copy from config.example.json)
-2. Navigate to the Settings page in MediaDock
-3. Enter your server URLs and API keys in the form fields
-4. Click "Copy Config to Clipboard"
-5. Paste the configuration into your `config.json` file
-6. Refresh the page to load the new configuration
+1. Navigate to the Settings page in MediaDock
+2. Enter your server URLs and API keys in the clearly labeled form fields:
+   - **Sonarr Configuration**: Server URL and API key with instructions
+   - **Radarr Configuration**: Server URL and API key with instructions  
+   - **SABnzbd Configuration**: Server URL and API key with instructions
+   - **TMDB API**: API key with link to registration
+   - **Gemini AI**: API key with setup instructions
+   - **Default Page**: Choose which page loads on startup
+3. Click "Apply Settings" to save your configuration
+4. Settings are applied immediately without requiring a page refresh
 
-**Note**: The `config.json` file is excluded from Git via `.gitignore` to protect your API keys.
+**Note**: All API keys and settings are stored locally in your browser and never transmitted to external servers.
 
 ## Usage
 
@@ -125,9 +129,11 @@ If you prefer to use the web interface to generate your configuration:
 - Watch trailers and view TMDB pages
 
 ### TV Shows
-- **Calendar**: View upcoming episodes grouped by day (Today, Tomorrow, weekdays)
-- **Search**: Find TV shows and add them to Sonarr
+- **Calendar**: View upcoming episodes grouped by day (Today, Tomorrow, weekdays) - loads by default
+- **Search**: Find TV shows and add them to Sonarr with "Load More" functionality that replaces current results
+- **Recently Added**: Dedicated section showing latest TV series added to your collection
 - Episode information includes air times and series details
+- Smart tab switching: Calendar tab is default, clicking TV Shows again switches to Search
 
 ### Downloads
 - Monitor SABnzbd download history
@@ -145,9 +151,10 @@ If you prefer to use the web interface to generate your configuration:
 - Configurable default landing page
 
 ### Card Interactions
-- Flip animations reveal detailed information
+- Smooth flip animations reveal detailed information with persistent titles during transitions
 - AI-generated descriptions for better content discovery
 - Direct integration with media management services
+- Enhanced visual feedback and improved user experience
 
 ### Real-time Data
 - Dynamic API configuration fetching
@@ -229,6 +236,25 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Gemini AI](https://ai.google.dev/) for intelligent content descriptions
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [Lucide](https://lucide.dev/) for icons
+
+## Recent Updates
+
+### v2.1.0 - Enhanced User Experience
+- ✅ Fixed card flip animations with persistent titles during transitions
+- ✅ Improved TV Shows "Load More" functionality to replace results instead of extending
+- ✅ Enhanced Settings page with clear field descriptions and API key guidance
+- ✅ Removed confusing elements from Settings interface for better user experience
+- ✅ Fixed TV Shows tab navigation with Calendar as default and intelligent tab switching
+- ✅ Added Recently Added sections for both Movies and TV Shows
+- ✅ Implemented consistent 2-column mobile grid layouts across all sections
+- ✅ Enhanced Quick Stats panel with real-time movie and TV series counts
+
+### v2.0.0 - Major Interface Overhaul
+- ✅ Responsive design with desktop sidebar navigation and mobile bottom navigation
+- ✅ Card flip animations for interactive content discovery
+- ✅ TV Shows Calendar with grouped upcoming episodes
+- ✅ Gemini AI integration for intelligent content descriptions
+- ✅ Multi-service API integration (Sonarr, Radarr, SABnzbd, TMDB)
 
 ## Roadmap
 

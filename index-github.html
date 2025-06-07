@@ -280,15 +280,7 @@
                 gap: 1.5rem;
             }
             
-            /* Keep save button normal size and outside grid */
-            #save-settings {
-                width: auto !important;
-                max-width: 200px !important;
-                margin: 1rem auto 0 auto !important;
-                padding: 0.75rem 1.5rem !important;
-                font-size: 0.875rem !important;
-                display: block !important;
-            }
+
         }
     </style>
 </head>
@@ -372,35 +364,77 @@
                 <div id="settings-page" class="page">
                     <div class="space-y-4 overflow-y-auto no-scrollbar flex-grow">
                         <h3 class="text-lg font-medium text-white mb-2">API Settings</h3>
-                        <div class="space-y-3">
-                            <input id="sonarr-url" type="text" placeholder="Sonarr URL (e.g., http://localhost:8989)" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="sonarr-api" type="text" placeholder="Sonarr API Key" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="radarr-url" type="text" placeholder="Radarr URL (e.g., http://localhost:7878)" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="radarr-api" type="text" placeholder="Radarr API Key" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="sabnzbd-url" type="text" placeholder="SABnzbd URL (e.g., http://localhost:8080)" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="sabnzbd-api" type="text" placeholder="SABnzbd API Key" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="tmdb-api" type="text" placeholder="TheMovieDB API Key (v3 Auth)" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="gemini-api" type="text" placeholder="Gemini API Key" class="w-full form-input text-white rounded-lg p-2">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">Sonarr URL</label>
+                                <input id="sonarr-url" type="text" placeholder="http://192.168.1.100:8989" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">The web address where your Sonarr instance is running (IP:Port)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">Sonarr API Key</label>
+                                <input id="sonarr-api" type="text" placeholder="Your Sonarr API key" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">Found in Sonarr Settings → General → Security → API Key</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">Radarr URL</label>
+                                <input id="radarr-url" type="text" placeholder="http://192.168.1.100:7878" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">The web address where your Radarr instance is running (IP:Port)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">Radarr API Key</label>
+                                <input id="radarr-api" type="text" placeholder="Your Radarr API key" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">Found in Radarr Settings → General → Security → API Key</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">SABnzbd URL</label>
+                                <input id="sabnzbd-url" type="text" placeholder="http://192.168.1.100:8080" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">The web address where your SABnzbd instance is running (IP:Port)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">SABnzbd API Key</label>
+                                <input id="sabnzbd-api" type="text" placeholder="Your SABnzbd API key" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">Found in SABnzbd Config → General → SABnzbd Web Server → API Key</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">TheMovieDB API Key</label>
+                                <input id="tmdb-api" type="text" placeholder="Your TMDB API key" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">Get your free API key from themoviedb.org/settings/api (v3 Auth)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">Gemini API Key</label>
+                                <input id="gemini-api" type="text" placeholder="Your Gemini API key" class="w-full form-input text-white rounded-lg p-2">
+                                <p class="text-gray-400 text-xs mt-1">Get your API key from Google AI Studio (ai.google.dev)</p>
+                            </div>
+                            
                             <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
                                 <input id="gemini-enabled" type="checkbox" class="form-checkbox h-4 w-4 text-green-500 rounded">
-                                <label for="gemini-enabled" class="text-white text-sm">Enable Gemini witty descriptions</label>
+                                <div>
+                                    <label for="gemini-enabled" class="text-white text-sm font-medium">Enable Gemini AI Descriptions</label>
+                                    <p class="text-gray-400 text-xs">Generates witty, personalized descriptions for movies and TV shows</p>
+                                </div>
                             </div>
-                            <select id="default-page" class="w-full form-input text-white rounded-lg p-2">
-                                <option value="tv-page">TV Shows (Calendar) - Default</option>
-                                <option value="movies-page">Movies</option>
-                                <option value="downloads-page">Downloads</option>
-                                <option value="settings-page">Settings</option>
-                            </select>
+                            
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-1">Default Page</label>
+                                <select id="default-page" class="w-full form-input text-white rounded-lg p-2">
+                                    <option value="tv-page">TV Shows (Calendar) - Default</option>
+                                    <option value="movies-page">Movies</option>
+                                    <option value="downloads-page">Downloads</option>
+                                    <option value="settings-page">Settings</option>
+                                </select>
+                                <p class="text-gray-400 text-xs mt-1">Choose which page loads when you first open the application</p>
+                            </div>
                         </div>
-                        <button id="apply-settings" class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg mb-2">
+                        <button id="apply-settings" class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg">
                             Apply Settings
                         </button>
-                        <button id="save-settings" class="w-full action-btn text-white font-bold py-2 px-4 rounded-lg">
-                            Copy Config to Clipboard
-                        </button>
-                        <p class="text-gray-400 text-xs mt-2 text-center">
-                            Use "Apply Settings" to save changes temporarily, or "Copy Config" for permanent storage.
-                        </p>
                     </div>
                 </div>
             </div>
@@ -435,7 +469,7 @@
                     <span class="stat-value" id="connection-status">Connected</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Movies Downloaded</span>
+                    <span class="stat-label">Movies</span>
                     <span class="stat-value" id="movies-count">Loading...</span>
                 </div>
                 <div class="stat-item">
@@ -503,7 +537,8 @@
             tmdbApi: "your-tmdb-api-key-here",
             geminiApi: "your-gemini-api-key-here",
             geminiEnabled: true,
-            defaultPage: "tv-page"
+            defaultPage: "tv-page",
+            defaultTvTab: "calendar"
         };
 
         // --- Utility Functions ---
@@ -524,7 +559,7 @@
         // --- UI Elements ---
         const navButtons = document.querySelectorAll('.nav-button');
         const pages = document.querySelectorAll('.page');
-        const saveSettingsBtn = document.getElementById('save-settings');
+
         const applySettingsBtn = document.getElementById('apply-settings');
         const movieSearchInput = document.getElementById('movie-search');
         const tvSearchInput = document.getElementById('tv-search');
@@ -592,27 +627,7 @@
             console.log('Settings updated:', userSettings);
         };
 
-        const copyConfigToClipboard = () => {
-            const settings = {
-                sonarrUrl: document.getElementById('sonarr-url').value,
-                sonarrApi: document.getElementById('sonarr-api').value,
-                radarrUrl: document.getElementById('radarr-url').value,
-                radarrApi: document.getElementById('radarr-api').value,
-                sabnzbdUrl: document.getElementById('sabnzbd-url').value,
-                sabnzbdApi: document.getElementById('sabnzbd-api').value,
-                tmdbApi: document.getElementById('tmdb-api').value,
-                geminiApi: document.getElementById('gemini-api').value,
-                geminiEnabled: document.getElementById('gemini-enabled').checked,
-                defaultPage: document.getElementById('default-page').value
-            };
-            
-            const configJson = JSON.stringify(settings, null, 2);
-            navigator.clipboard.writeText(configJson).then(() => {
-                showNotification('Configuration copied to clipboard! Paste it into config.json file.', 'success');
-            }).catch(() => {
-                showNotification('Failed to copy to clipboard', 'error');
-            });
-        };
+
 
         const loadSettings = () => {
             console.log('Using embedded configuration:', userSettings);
@@ -768,8 +783,8 @@
                     // If already on TV page, switch to search
                     toggleTvView('search');
                 } else {
-                    // First time loading TV page, default to recent
-                    toggleTvView('recent');
+                    // First time loading TV page, use the default tab from settings
+                    toggleTvView(userSettings.defaultTvTab || 'calendar');
                 }
             } else if (pageId === 'movies-page') {
                 // Load recent movies by default when movies page is shown
@@ -781,99 +796,7 @@
             }
         };
 
-        // --- TV Toggle Functions ---
-        const toggleTvView = (view) => {
-            const recentBtn = tvRecentBtn;
-            const calendarBtn = tvCalendarBtn;
-            const searchBtn = tvSearchBtn;
-            const searchContainer = tvSearchContainer;
-            const calendarContainer = sonarrCalendarContainer;
-            const recentContainer = sonarrRecentContainer;
-            const resultsContainer = tvResultsContainer;
-            const defaultContent = document.getElementById('tv-default-content');
-
-            // Hide all containers first
-            recentContainer?.classList.add('hidden');
-            calendarContainer?.classList.add('hidden');
-            resultsContainer?.classList.add('hidden');
-            searchContainer?.classList.add('hidden');
-            
-            // Remove active state from all buttons
-            recentBtn?.classList.remove('active');
-            calendarBtn?.classList.remove('active');
-            searchBtn?.classList.remove('active');
-
-            if (view === 'recent') {
-                recentBtn?.classList.add('active');
-                recentContainer?.classList.remove('hidden');
-                
-                // Clear other content areas
-                if (resultsContainer) {
-                    resultsContainer.innerHTML = '';
-                }
-                if (calendarContainer) {
-                    calendarContainer.innerHTML = '';
-                }
-                tvSearchHeader.innerHTML = '';
-                tvSearchHeader.classList.add('hidden');
-                
-                // Clear search input
-                const searchInput = document.getElementById('tv-search');
-                if (searchInput) {
-                    searchInput.value = '';
-                }
-                
-                // Reset search state
-                currentTvQuery = '';
-                tvPage = 1;
-                recentTvPage = 1;
-                
-                loadSonarrRecent();
-            } else if (view === 'calendar') {
-                calendarBtn?.classList.add('active');
-                calendarContainer?.classList.remove('hidden');
-                
-                // Clear other content areas
-                if (resultsContainer) {
-                    resultsContainer.innerHTML = '';
-                }
-                if (recentContainer) {
-                    recentContainer.innerHTML = '';
-                }
-                tvSearchHeader.innerHTML = '';
-                tvSearchHeader.classList.add('hidden');
-                
-                // Clear search input
-                const searchInput = document.getElementById('tv-search');
-                if (searchInput) {
-                    searchInput.value = '';
-                }
-                
-                // Reset search state
-                currentTvQuery = '';
-                tvPage = 1;
-                
-                loadSonarrCalendar();
-            } else { // search
-                searchBtn?.classList.add('active');
-                searchContainer?.classList.remove('hidden');
-                resultsContainer?.classList.remove('hidden');
-                
-                // Clear other content areas
-                if (calendarContainer) {
-                    calendarContainer.innerHTML = '';
-                }
-                if (recentContainer) {
-                    recentContainer.innerHTML = '';
-                }
-                
-                // Show default content when switching to search tab with empty search
-                const searchInput = document.getElementById('tv-search');
-                if (defaultContent && (!searchInput || !searchInput.value.trim())) {
-                    defaultContent.style.display = 'block';
-                }
-            }
-        };
+        // --- TV Toggle Functions removed (duplicate) ---
 
         // --- Card Flip Function ---
         window.flipCard = (cardElement, itemId) => {
@@ -1705,27 +1628,34 @@
                         return `
                             <div class="card-container w-full" onclick="flipCard(this, ${series.id})">
                                 <div class="card">
-                                    <div class="card-front">
-                                        <img src="${posterUrl}" alt="${series.title}" class="w-full h-full object-cover rounded-lg">
-                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3">
-                                            <h3 class="text-white text-sm font-semibold truncate">${series.title}</h3>
-                                            <p class="text-gray-300 text-xs">${year} • <span class="text-green-400">${episodeText}</span></p>
+                                    <div class="card-face card-face-front">
+                                        <div class="bg-black/70 backdrop-blur-sm rounded p-2 mb-2">
+                                            <div class="flex items-center justify-between">
+                                                <h3 class="text-white font-semibold text-sm truncate">${series.title}</h3>
+                                                <span class="text-gray-300 text-xs ml-2 flex-shrink-0">${year}</span>
+                                            </div>
+                                            <p class="text-green-400 text-xs">${episodeText}</p>
+                                        </div>
+                                        <div class="card-image-container flex-1" style="background-image: url('${posterUrl}')">
                                         </div>
                                     </div>
-                                    <div class="card-back" style="background-image: url('${posterUrl}');">
+                                    <div class="card-face card-face-back">
+                                        <div class="card-back-image" style="background-image: url('${posterUrl}');"></div>
                                         <div class="card-back-overlay">
-                                            <h3 class="text-white text-lg font-bold text-center mb-2">${series.title}</h3>
-                                            <div class="text-gray-200 text-sm text-center mb-4 line-clamp-4" id="tv-desc-${series.id}">
-                                                ${description}
-                                            </div>
-                                            <div class="flex flex-col space-y-2 w-full">
-                                                <button onclick="event.stopPropagation(); watchTvTrailerBySeries('${series.title}', '${series.year || ''}')" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
-                                                    <i data-lucide="play" class="w-3 h-3"></i>
-                                                    <span>Trailer</span>
-                                                </button>
-                                                <div class="text-center text-xs text-gray-300">
-                                                    <span>${year}</span>
-                                                    <span class="ml-2">★ ${series.ratings?.value ? series.ratings.value.toFixed(1) : 'N/A'}</span>
+                                            <div class="text-center space-y-4">
+                                                <h3 class="text-white font-bold text-lg">${series.title}</h3>
+                                                <div class="flex items-center justify-center space-x-2">
+                                                    <span class="text-yellow-400 text-sm">★</span>
+                                                    <span class="text-white text-sm">${series.ratings?.value ? series.ratings.value.toFixed(1) : 'N/A'}</span>
+                                                </div>
+                                                <p class="text-gray-200 text-sm" id="tv-desc-${series.id}">${description}</p>
+                                                <div class="flex flex-col space-y-2 w-full">
+                                                    <button onclick="event.stopPropagation(); watchTvTrailerBySeries('${series.title}', '${series.year || ''}')" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                                        <i data-lucide="play" class="w-4 h-4 inline mr-1"></i>Watch Trailer
+                                                    </button>
+                                                    <div class="text-center text-xs text-gray-300">
+                                                        <span>${episodeText}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1751,19 +1681,19 @@
                             </div>
                         `;
                     } else {
-                        const existingGrid = sonarrRecentContainer.querySelector('.grid');
-                        const loadMoreButton = existingGrid.querySelector('.col-span-full');
-                        if (loadMoreButton) loadMoreButton.remove();
-                        
-                        // Directly append new HTML to the grid
-                        const currentHTML = existingGrid.innerHTML;
-                        existingGrid.innerHTML = currentHTML + seriesHtml + (hasMoreSeries ? `
-                            <div class="col-span-full flex justify-center mt-6">
-                                <button onclick="loadMoreRecentTvShows()" class="btn-primary px-6 py-2 rounded-lg">
-                                    Load More TV Shows
-                                </button>
+                        // Replace the entire list with new page content
+                        sonarrRecentContainer.innerHTML = `
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                ${seriesHtml}
+                                ${loadMoreHtml}
                             </div>
-                        ` : '');
+                        `;
+                        
+                        // Scroll to top of the content area
+                        const contentArea = document.getElementById('tv-content-area');
+                        if (contentArea) {
+                            contentArea.scrollTop = 0;
+                        }
                     }
                     
                     lucide.createIcons();
@@ -1895,27 +1825,34 @@
                         return `
                             <div class="card-container w-full" onclick="flipCard(this, ${movie.id})">
                                 <div class="card">
-                                    <div class="card-front">
-                                        <img src="${posterUrl}" alt="${movie.title}" class="w-full h-full object-cover rounded-lg">
-                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3">
-                                            <h3 class="text-white text-sm font-semibold truncate">${movie.title}</h3>
-                                            <p class="text-gray-300 text-xs">${year} • <span class="${statusColor}">${status}</span></p>
+                                    <div class="card-face card-face-front">
+                                        <div class="bg-black/70 backdrop-blur-sm rounded p-2 mb-2">
+                                            <div class="flex items-center justify-between">
+                                                <h3 class="text-white font-semibold text-sm truncate">${movie.title}</h3>
+                                                <span class="text-gray-300 text-xs ml-2 flex-shrink-0">${year}</span>
+                                            </div>
+                                            <p class="${statusColor} text-xs">${status}</p>
+                                        </div>
+                                        <div class="card-image-container flex-1" style="background-image: url('${posterUrl}')">
                                         </div>
                                     </div>
-                                    <div class="card-back" style="background-image: url('${posterUrl}');">
+                                    <div class="card-face card-face-back">
+                                        <div class="card-back-image" style="background-image: url('${posterUrl}');"></div>
                                         <div class="card-back-overlay">
-                                            <h3 class="text-white text-lg font-bold text-center mb-2">${movie.title}</h3>
-                                            <div class="text-gray-200 text-sm text-center mb-4 line-clamp-4" id="movie-desc-${movie.id}">
-                                                ${description}
-                                            </div>
-                                            <div class="flex flex-col space-y-2 w-full">
-                                                <button onclick="event.stopPropagation(); playTrailer('${movie.title}', ${movie.tmdbId || 'null'})" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
-                                                    <i data-lucide="play" class="w-3 h-3"></i>
-                                                    <span>Trailer</span>
-                                                </button>
-                                                <div class="text-center text-xs text-gray-300">
-                                                    <span>${year}</span>
-                                                    ${movie.ratings?.imdb ? `<span class="ml-2">★ ${movie.ratings.imdb.value.toFixed(1)}</span>` : ''}
+                                            <div class="text-center space-y-4">
+                                                <h3 class="text-white font-bold text-lg">${movie.title}</h3>
+                                                <div class="flex items-center justify-center space-x-2">
+                                                    <span class="text-yellow-400 text-sm">★</span>
+                                                    <span class="text-white text-sm">${movie.ratings?.imdb ? movie.ratings.imdb.value.toFixed(1) : 'N/A'}</span>
+                                                </div>
+                                                <p class="text-gray-200 text-sm" id="movie-desc-${movie.id}">${description}</p>
+                                                <div class="flex flex-col space-y-2 w-full">
+                                                    <button onclick="event.stopPropagation(); playTrailer('${movie.title}', ${movie.tmdbId || 'null'})" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                                        <i data-lucide="play" class="w-4 h-4 inline mr-1"></i>Watch Trailer
+                                                    </button>
+                                                    <div class="text-center text-xs text-gray-300">
+                                                        <span class="${statusColor}">${status}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -2178,6 +2115,20 @@
                     searchInput.value = '';
                 }
                 
+                // Hide default content and clear all other containers
+                const defaultContent = document.getElementById('tv-default-content');
+                if (defaultContent) {
+                    defaultContent.style.display = 'none';
+                }
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = '';
+                }
+                if (calendarContainer) {
+                    calendarContainer.innerHTML = '';
+                }
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
+                
                 // Reset search state
                 currentTvQuery = '';
                 tvPage = 1;
@@ -2224,13 +2175,33 @@
                 tvSearchHeader.innerHTML = '';
                 tvSearchHeader.classList.add('hidden');
                 
-                // Show default content when switching to search tab with empty search
+                // Clear search input and reset state
                 const searchInput = document.getElementById('tv-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                currentTvQuery = '';
+                tvPage = 1;
+                
+                // Ensure default content is restored to results container
                 const defaultContent = document.getElementById('tv-default-content');
-                if (defaultContent && (!searchInput || !searchInput.value.trim())) {
+                if (!defaultContent) {
+                    // Re-create default content if it doesn't exist
+                    resultsContainer.innerHTML = `
+                        <div id="tv-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
+                            <div class="mx-auto w-24 h-24 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12H3V5h18v10z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-white mb-2">Discover TV Shows</h3>
+                                <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite TV series above to explore episodes, watch trailers, and add them to your Sonarr collection.</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
                     defaultContent.style.display = 'block';
-                } else if (defaultContent) {
-                    defaultContent.style.display = 'none';
                 }
             }
         };
@@ -2251,7 +2222,7 @@
             });
         });
 
-        saveSettingsBtn.addEventListener('click', copyConfigToClipboard);
+
         applySettingsBtn.addEventListener('click', applySettings);
 
         movieSearchInput.addEventListener('input', (e) => {

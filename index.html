@@ -363,11 +363,11 @@
                     <div class="space-y-4 overflow-y-auto no-scrollbar flex-grow">
                         <h3 class="text-lg font-medium text-white mb-2">API Settings</h3>
                         <div class="space-y-3">
-                            <input id="sonarr-url" type="text" placeholder="http://192.168.1.20:8989" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sonarr-url" type="text" placeholder="Sonarr URL (e.g., http://localhost:8989)" class="w-full form-input text-white rounded-lg p-2">
                             <input id="sonarr-api" type="text" placeholder="Sonarr API Key" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="radarr-url" type="text" placeholder="http://192.168.1.20:7878" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="radarr-url" type="text" placeholder="Radarr URL (e.g., http://localhost:7878)" class="w-full form-input text-white rounded-lg p-2">
                             <input id="radarr-api" type="text" placeholder="Radarr API Key" class="w-full form-input text-white rounded-lg p-2">
-                            <input id="sabnzbd-url" type="text" placeholder="http://192.168.1.20:8080" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sabnzbd-url" type="text" placeholder="SABnzbd URL (e.g., http://localhost:8080)" class="w-full form-input text-white rounded-lg p-2">
                             <input id="sabnzbd-api" type="text" placeholder="SABnzbd API Key" class="w-full form-input text-white rounded-lg p-2">
                             <input id="tmdb-api" type="text" placeholder="TheMovieDB API Key (v3 Auth)" class="w-full form-input text-white rounded-lg p-2">
                             <input id="gemini-api" type="text" placeholder="Gemini API Key" class="w-full form-input text-white rounded-lg p-2">
@@ -461,14 +461,14 @@
         let searchTimeout;
         const SETTINGS_KEY = 'mediaDockSettings';
         const defaultSettings = {
-            sonarrUrl: 'http://192.168.1.20:8989', 
-            sonarrApi: 'd5c8a95b50ca4eb6ac7c34d64a1b5069',
-            radarrUrl: 'http://192.168.1.20:7878', 
-            radarrApi: 'ac1e729c49c84c3096f30eea6791707f',
-            sabnzbdUrl: 'http://192.168.1.20:8080', 
-            sabnzbdApi: '55af5171b46143b1872ed07b622262df',
-            tmdbApi: '607da9c4fc03dd0c28b2098e855c73db', 
-            geminiApi: 'AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg', 
+            sonarrUrl: '', 
+            sonarrApi: '',
+            radarrUrl: '', 
+            radarrApi: '',
+            sabnzbdUrl: '', 
+            sabnzbdApi: '',
+            tmdbApi: '', 
+            geminiApi: '', 
             defaultPage: 'tv-page'
         };
         let userSettings = {};

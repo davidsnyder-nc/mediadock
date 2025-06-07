@@ -89,9 +89,21 @@ MediaDock uses a `config.json` file to store your API keys and server settings. 
    - Enter your Radarr server URL (e.g., `http://localhost:7878`)
    - Get API key from Radarr Settings > General > API Key
 
-5. **SABnzbd Configuration**
-   - Enter your SABnzbd server URL (e.g., `http://localhost:8080`)
-   - Get API key from SABnzbd Config > General > API Key
+   - **Radarr**: Enter server URL and API key from Settings > General > Security
+   - **SABnzbd**: Enter server URL and API key from Config > General > API Key
+
+### Alternative: Settings Page Configuration
+
+If you prefer to use the web interface to generate your configuration:
+
+1. Start the server with a basic config.json (copy from config.example.json)
+2. Navigate to the Settings page in MediaDock
+3. Enter your server URLs and API keys in the form fields
+4. Click "Copy Config to Clipboard"
+5. Paste the configuration into your `config.json` file
+6. Refresh the page to load the new configuration
+
+**Note**: The `config.json` file is excluded from Git via `.gitignore` to protect your API keys.
 
 ## Usage
 

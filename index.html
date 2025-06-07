@@ -195,7 +195,26 @@
                     </div>
                     <div id="tv-content-area" class="overflow-y-auto no-scrollbar flex-grow">
                         <div id="sonarr-calendar" class="space-y-1 hidden"></div>
-                        <div id="tv-results" class="hidden grid-cols-1 gap-4"></div>
+                        <div id="tv-results" class="hidden grid-cols-1 gap-4">
+                            <!-- Default content when no search results -->
+                            <div id="tv-default-content" class="text-center py-12 space-y-6">
+                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">Discover TV Shows</h3>
+                                    <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite TV series above to explore episodes, watch trailers, and add them to your Sonarr collection.</p>
+                                </div>
+                                <div class="flex flex-wrap justify-center gap-2 text-xs">
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Find series</span>
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Episode tracking</span>
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Season management</span>
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Auto downloads</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -459,6 +478,7 @@
             const searchContainer = tvSearchContainer;
             const calendarContainer = sonarrCalendarContainer;
             const resultsContainer = tvResultsContainer;
+            const defaultContent = document.getElementById('tv-default-content');
 
             if (view === 'calendar') {
                 calendarBtn.classList.add('active');
@@ -474,6 +494,12 @@
                 calendarContainer.classList.add('hidden');
                 resultsContainer.classList.remove('hidden');
                 resultsContainer.classList.add('grid');
+                
+                // Show default content when switching to search tab with empty search
+                const searchInput = document.getElementById('tv-search');
+                if (defaultContent && (!searchInput || !searchInput.value.trim())) {
+                    defaultContent.style.display = 'block';
+                }
             }
         };
 
@@ -527,12 +553,23 @@
         };
 
         const searchTvShows = async (query) => {
-            if (!query.trim() || !userSettings.tmdbApi) {
-                tvResultsContainer.innerHTML = userSettings.tmdbApi ? '' : '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
+            const defaultContent = document.getElementById('tv-default-content');
+            
+            if (!query.trim()) {
+                // Show default content when search is empty
+                if (defaultContent) defaultContent.style.display = 'block';
+                tvResultsContainer.innerHTML = tvResultsContainer.innerHTML.includes('tv-default-content') ? tvResultsContainer.innerHTML : '';
+                return;
+            }
+            
+            if (!userSettings.tmdbApi) {
+                if (defaultContent) defaultContent.style.display = 'none';
+                tvResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
                 return;
             }
 
             try {
+                if (defaultContent) defaultContent.style.display = 'none';
                 tvResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 
                 const data = await makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}`);

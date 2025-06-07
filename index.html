@@ -301,7 +301,7 @@
                     <div class="overflow-y-auto no-scrollbar flex-grow">
                         <div id="movie-results" class="grid grid-cols-1 gap-4">
                             <!-- Default content when no search results -->
-                            <div id="movie-default-content" class="text-center py-12 space-y-6">
+                            <div id="movie-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
                                 <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                     <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19V5h14v14H5zm3-10h8v2H8V9zm0 3h8v2H8v-2zm0 3h5v2H8v-2z"/>
@@ -311,7 +311,6 @@
                                     <h3 class="text-xl font-semibold text-white mb-2">Discover Movies</h3>
                                     <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite movies above to explore details, watch trailers, and add them to your Radarr collection.</p>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -333,7 +332,7 @@
                         <div id="sonarr-calendar" class="space-y-1 hidden"></div>
                         <div id="tv-results" class="hidden grid-cols-1 gap-4">
                             <!-- Default content when no search results -->
-                            <div id="tv-default-content" class="text-center py-12 space-y-6">
+                            <div id="tv-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
                                 <div class="mx-auto w-24 h-24 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
                                     <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12H3V5h18v10z"/>
@@ -343,7 +342,6 @@
                                     <h3 class="text-xl font-semibold text-white mb-2">Discover TV Shows</h3>
                                     <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite TV series above to explore episodes, watch trailers, and add them to your Sonarr collection.</p>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -694,20 +692,23 @@
             const resultsContainer = tvResultsContainer;
             const defaultContent = document.getElementById('tv-default-content');
 
+            console.log('toggleTvView called with view:', view);
+            console.log('Elements found:', { calendarBtn, searchBtn, searchContainer, calendarContainer, resultsContainer });
+
             if (view === 'calendar') {
-                calendarBtn.classList.add('active');
-                searchBtn.classList.remove('active');
-                searchContainer.classList.add('hidden');
-                calendarContainer.classList.remove('hidden');
-                resultsContainer.classList.add('hidden');
-                resultsContainer.classList.remove('grid');
+                calendarBtn?.classList.add('active');
+                searchBtn?.classList.remove('active');
+                searchContainer?.classList.add('hidden');
+                calendarContainer?.classList.remove('hidden');
+                resultsContainer?.classList.add('hidden');
+                resultsContainer?.classList.remove('grid');
             } else {
-                searchBtn.classList.add('active');
-                calendarBtn.classList.remove('active');
-                searchContainer.classList.remove('hidden');
-                calendarContainer.classList.add('hidden');
-                resultsContainer.classList.remove('hidden');
-                resultsContainer.classList.add('grid');
+                searchBtn?.classList.add('active');
+                calendarBtn?.classList.remove('active');
+                searchContainer?.classList.remove('hidden');
+                calendarContainer?.classList.add('hidden');
+                resultsContainer?.classList.remove('hidden');
+                resultsContainer?.classList.add('grid');
                 
                 // Show default content when switching to search tab with empty search
                 const searchInput = document.getElementById('tv-search');

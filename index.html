@@ -236,6 +236,12 @@
                             <input id="sabnzbd-api" type="text" placeholder="SABnzbd API Key" class="w-full form-input text-white rounded-lg p-2">
                             <input id="tmdb-api" type="text" placeholder="TheMovieDB API Key (v3 Auth)" class="w-full form-input text-white rounded-lg p-2">
                             <input id="gemini-api" type="text" placeholder="Gemini API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <select id="default-page" class="w-full form-input text-white rounded-lg p-2">
+                                <option value="tv-page">TV Shows (Calendar) - Default</option>
+                                <option value="movies-page">Movies</option>
+                                <option value="downloads-page">Downloads</option>
+                                <option value="settings-page">Settings</option>
+                            </select>
                         </div>
                         <button id="save-settings" class="w-full action-btn text-white font-bold py-2 px-4 rounded-lg">
                             Save Settings
@@ -284,7 +290,7 @@
             sonarrUrl: 'http://192.168.1.20:8989', sonarrApi: '',
             radarrUrl: 'http://192.168.1.20:7878', radarrApi: '',
             sabnzbdUrl: 'http://192.168.1.20:8080', sabnzbdApi: '',
-            tmdbApi: '', geminiApi: ''
+            tmdbApi: '', geminiApi: '', defaultPage: 'tv-page'
         };
         let userSettings = {};
 
@@ -340,7 +346,8 @@
                 sabnzbdUrl: document.getElementById('sabnzbd-url').value,
                 sabnzbdApi: document.getElementById('sabnzbd-api').value,
                 tmdbApi: document.getElementById('tmdb-api').value,
-                geminiApi: document.getElementById('gemini-api').value
+                geminiApi: document.getElementById('gemini-api').value,
+                defaultPage: document.getElementById('default-page').value
             };
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
             userSettings = settings;
@@ -359,6 +366,7 @@
             document.getElementById('sabnzbd-api').value = userSettings.sabnzbdApi || '';
             document.getElementById('tmdb-api').value = userSettings.tmdbApi || '';
             document.getElementById('gemini-api').value = userSettings.geminiApi || '';
+            document.getElementById('default-page').value = userSettings.defaultPage || defaultSettings.defaultPage;
         };
 
         // --- Card Creation ---
@@ -840,7 +848,7 @@
 
         // --- Initialize App ---
         loadSettings();
-        showPage('movies-page');
+        showPage(userSettings.defaultPage || defaultSettings.defaultPage);
         lucide.createIcons();
     </script>
 </body>

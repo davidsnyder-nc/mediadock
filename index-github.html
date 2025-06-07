@@ -432,7 +432,10 @@
                     <span class="stat-label">Status</span>
                     <span class="stat-value" id="connection-status">Connected</span>
                 </div>
-
+                <div class="stat-item">
+                    <span class="stat-label">Movies Downloaded</span>
+                    <span class="stat-value" id="movies-count">Loading...</span>
+                </div>
                 <div class="stat-item">
                     <span class="stat-label">Last Updated</span>
                     <span class="stat-value" id="last-updated">Just now</span>
@@ -1555,6 +1558,30 @@
             }
         };
 
+        // --- Load Radarr Movie Count for Quick Stats ---
+        const loadRadarrMovieCount = async () => {
+            const moviesCountElement = document.getElementById('movies-count');
+            
+            if (!userSettings.radarrUrl || !userSettings.radarrApi) {
+                moviesCountElement.textContent = 'N/A';
+                return;
+            }
+
+            try {
+                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}`);
+                
+                if (response && Array.isArray(response)) {
+                    const downloadedMovies = response.filter(movie => movie.hasFile);
+                    moviesCountElement.textContent = downloadedMovies.length;
+                } else {
+                    moviesCountElement.textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading Radarr movie count:', error);
+                moviesCountElement.textContent = 'Error';
+            }
+        };
+
         // --- Radarr Recent Movies Function ---
         const loadRadarrRecent = async (page = 1) => {
             const radarrRecentContainer = document.getElementById('radarr-recent');
@@ -1883,6 +1910,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadSettings();
             showPage(userSettings.defaultPage || 'tv-page');
+            loadRadarrMovieCount();
             lucide.createIcons();
         });
     </script>

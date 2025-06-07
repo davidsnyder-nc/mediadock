@@ -432,10 +432,7 @@
                     <span class="stat-label">Status</span>
                     <span class="stat-value" id="connection-status">Connected</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Default Page</span>
-                    <span class="stat-value" id="default-page-display">TV Shows</span>
-                </div>
+
                 <div class="stat-item">
                     <span class="stat-label">Last Updated</span>
                     <span class="stat-value" id="last-updated">Just now</span>
@@ -1669,12 +1666,14 @@
         // Load more recent movies function
         window.loadMoreRecentMovies = () => {
             recentMoviePage++;
-            // Auto scroll to top of page immediately
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            // Small delay to ensure scroll starts before loading content
+            // Auto scroll to top of page with improved timing
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 50);
+            // Load content after scroll begins
             setTimeout(() => {
                 loadRadarrRecent(recentMoviePage);
-            }, 100);
+            }, 200);
         };
 
         // Generate witty descriptions using Gemini with fallback

@@ -245,6 +245,13 @@
                 display: none;
             }
             
+            /* Fix save button size on desktop */
+            #save-settings {
+                max-width: 200px;
+                margin: 0 auto;
+                padding: 0.75rem 1.5rem;
+            }
+            
             /* Adjust main content grid for desktop */
             #movie-results, #tv-results {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -280,7 +287,7 @@
 </head>
 <body class="bg-gray-900-gradient text-gray-200 h-full">
 
-    <div id="app" class="max-w-md mx-auto h-full flex flex-col relative">
+    <div id="app" class="max-w-md mx-auto h-full flex flex-col relative pb-20 md:pb-0">
         <main class="flex-grow p-4 overflow-y-auto no-scrollbar">
             <!-- Pages Container -->
             <div id="pages-container" class="h-full">
@@ -414,7 +421,7 @@
         </div>
 
         <!-- Navigation Bar -->
-        <nav class="flex justify-around bg-gray-800/50 backdrop-filter backdrop-blur-lg p-2 sticky bottom-0 border-t border-gray-700/50">
+        <nav class="flex justify-around bg-gray-800/50 backdrop-filter backdrop-blur-lg p-2 fixed bottom-0 left-0 right-0 border-t border-gray-700/50 z-10 md:hidden">
             <button data-page="movies-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
                 <i data-lucide="film"></i><span class="text-xs mt-1">Movies</span>
             </button>
@@ -929,19 +936,66 @@
                         seriesMap[series.id] = series.title;
                     });
 
-                    const calendarHtml = calendarData.map(episode => {
-                        const seriesTitle = seriesMap[episode.seriesId] || 'Unknown Series';
+                    // Group episodes by day
+                    const episodesByDay = {};
+                    const dayNames = ['Today', 'Tomorrow'];
+                    
+                    calendarData.forEach(episode => {
+                        const episodeDate = new Date(episode.airDate || episode.airDateUtc);
+                        const dateStr = episodeDate.toDateString();
                         
-                        return `
-                        <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-white font-medium text-sm">${seriesTitle}</h4>
-                                <span class="text-gray-400 text-xs">${new Date(episode.airDate || episode.airDateUtc).toLocaleDateString()}</span>
+                        if (!episodesByDay[dateStr]) {
+                            episodesByDay[dateStr] = [];
+                        }
+                        episodesByDay[dateStr].push(episode);
+                    });
+
+                    // Generate grouped calendar HTML
+                    let calendarHtml = '';
+                    const sortedDates = Object.keys(episodesByDay).sort((a, b) => new Date(a) - new Date(b));
+                    
+                    sortedDates.forEach((dateStr, index) => {
+                        const date = new Date(dateStr);
+                        const isToday = date.toDateString() === today.toDateString();
+                        const isTomorrow = date.toDateString() === new Date(today.getTime() + 24 * 60 * 60 * 1000).toDateString();
+                        
+                        let dayLabel;
+                        if (isToday) dayLabel = 'Today';
+                        else if (isTomorrow) dayLabel = 'Tomorrow';
+                        else dayLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                        
+                        calendarHtml += `
+                            <div class="mb-6">
+                                <h4 class="text-white font-semibold text-base mb-3 pb-2 border-b border-gray-700">${dayLabel}</h4>
+                                <div class="space-y-2">
+                        `;
+                        
+                        episodesByDay[dateStr].forEach(episode => {
+                            const seriesTitle = seriesMap[episode.seriesId] || 'Unknown Series';
+                            const airTime = new Date(episode.airDate || episode.airDateUtc).toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                            });
+                            
+                            calendarHtml += `
+                                <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h5 class="text-white font-medium text-sm">${seriesTitle}</h5>
+                                        <span class="text-gray-400 text-xs">${airTime}</span>
+                                    </div>
+                                    <p class="text-gray-300 text-xs mb-1">S${episode.seasonNumber?.toString().padStart(2, '0')}E${episode.episodeNumber?.toString().padStart(2, '0')}</p>
+                                    <p class="text-gray-400 text-xs">${episode.title || 'Episode'}</p>
+                                </div>
+                            `;
+                        });
+                        
+                        calendarHtml += `
+                                </div>
                             </div>
-                            <p class="text-gray-300 text-xs mb-1">S${episode.seasonNumber?.toString().padStart(2, '0')}E${episode.episodeNumber?.toString().padStart(2, '0')}</p>
-                            <p class="text-gray-400 text-xs">${episode.title || 'Episode'}</p>
-                        </div>`;
-                    }).join('');
+                        `;
+                    });
+                    
                     sonarrCalendarContainer.innerHTML = calendarHtml;
                 } else {
                     sonarrCalendarContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No upcoming episodes</p>';

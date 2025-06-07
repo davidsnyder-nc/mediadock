@@ -1519,11 +1519,11 @@
                 if (response && response.length > 0) {
                     // Sort by actual download date (most recent first)
                     const sortedMovies = response
-                        .filter(movie => movie.hasFile) // Only show downloaded movies
+                        .filter(movie => movie.hasFile && movie.movieFile?.dateAdded) // Only show movies with actual download timestamps
                         .sort((a, b) => {
                             // Use movieFile.dateAdded for actual download date
-                            const dateA = new Date(a.movieFile?.dateAdded || a.added || 0);
-                            const dateB = new Date(b.movieFile?.dateAdded || b.added || 0);
+                            const dateA = new Date(a.movieFile.dateAdded);
+                            const dateB = new Date(b.movieFile.dateAdded);
                             return dateB - dateA;
                         });
                     

@@ -753,17 +753,23 @@
                     `${userSettings.sonarrUrl}/api/v3/calendar?start=${today.toISOString().split('T')[0]}&end=${nextWeek.toISOString().split('T')[0]}&apikey=${userSettings.sonarrApi}`
                 );
 
+                console.log('Sonarr calendar data:', data[0]); // Debug the structure
+
                 if (data && data.length > 0) {
-                    const calendarHtml = data.map(episode => `
+                    const calendarHtml = data.map(episode => {
+                        // Try different possible property names for series title
+                        const seriesTitle = episode.series?.title || episode.seriesTitle || episode.series?.name || 'Unknown Series';
+                        
+                        return `
                         <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                             <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-white font-medium text-sm">${episode.series?.title || 'Unknown Series'}</h4>
-                                <span class="text-gray-400 text-xs">${new Date(episode.airDate).toLocaleDateString()}</span>
+                                <h4 class="text-white font-medium text-sm">${seriesTitle}</h4>
+                                <span class="text-gray-400 text-xs">${new Date(episode.airDate || episode.airDateUtc).toLocaleDateString()}</span>
                             </div>
                             <p class="text-gray-300 text-xs mb-1">S${episode.seasonNumber?.toString().padStart(2, '0')}E${episode.episodeNumber?.toString().padStart(2, '0')}</p>
                             <p class="text-gray-400 text-xs">${episode.title || 'Episode'}</p>
-                        </div>
-                    `).join('');
+                        </div>`;
+                    }).join('');
                     sonarrCalendarContainer.innerHTML = calendarHtml;
                 } else {
                     sonarrCalendarContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No upcoming episodes</p>';

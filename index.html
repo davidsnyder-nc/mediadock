@@ -562,39 +562,35 @@
                 const geminiApi = document.getElementById('gemini-api');
                 const defaultPage = document.getElementById('default-page');
                 
-                // Clear placeholder and set value for Safari compatibility
-                if (sonarrUrl) {
-                    sonarrUrl.placeholder = '';
-                    sonarrUrl.value = userSettings.sonarrUrl || '';
-                }
-                if (sonarrApi) {
-                    sonarrApi.placeholder = '';
-                    sonarrApi.value = userSettings.sonarrApi || '';
-                }
-                if (radarrUrl) {
-                    radarrUrl.placeholder = '';
-                    radarrUrl.value = userSettings.radarrUrl || '';
-                }
-                if (radarrApi) {
-                    radarrApi.placeholder = '';
-                    radarrApi.value = userSettings.radarrApi || '';
-                }
-                if (sabnzbdUrl) {
-                    sabnzbdUrl.placeholder = '';
-                    sabnzbdUrl.value = userSettings.sabnzbdUrl || '';
-                }
-                if (sabnzbdApi) {
-                    sabnzbdApi.placeholder = '';
-                    sabnzbdApi.value = userSettings.sabnzbdApi || '';
-                }
-                if (tmdbApi) {
-                    tmdbApi.placeholder = '';
-                    tmdbApi.value = userSettings.tmdbApi || '';
-                }
-                if (geminiApi) {
-                    geminiApi.placeholder = '';
-                    geminiApi.value = userSettings.geminiApi || '';
-                }
+                // Safari-specific fix: Force input focus and re-trigger value setting
+                const inputs = [
+                    { el: sonarrUrl, key: 'sonarrUrl' },
+                    { el: sonarrApi, key: 'sonarrApi' },
+                    { el: radarrUrl, key: 'radarrUrl' },
+                    { el: radarrApi, key: 'radarrApi' },
+                    { el: sabnzbdUrl, key: 'sabnzbdUrl' },
+                    { el: sabnzbdApi, key: 'sabnzbdApi' },
+                    { el: tmdbApi, key: 'tmdbApi' },
+                    { el: geminiApi, key: 'geminiApi' }
+                ];
+                
+                inputs.forEach(({ el, key }) => {
+                    if (el && userSettings[key]) {
+                        // Clear any existing attributes that might interfere
+                        el.removeAttribute('placeholder');
+                        el.removeAttribute('readonly');
+                        
+                        // Force the value using multiple methods for Safari
+                        el.value = '';
+                        el.defaultValue = userSettings[key];
+                        el.value = userSettings[key];
+                        
+                        // Trigger input events to ensure Safari recognizes the value
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+                
                 if (defaultPage) {
                     defaultPage.value = userSettings.defaultPage || 'tv-page';
                 }

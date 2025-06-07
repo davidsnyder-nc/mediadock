@@ -247,6 +247,22 @@
                 }
             }
             
+            /* Recommendation Page Styles */
+            .rec-type-btn {
+                background-color: #374151;
+                color: #9ca3af;
+            }
+            .rec-type-btn.active {
+                background-color: #10b981;
+                color: #ffffff;
+            }
+            .rec-type-btn:hover {
+                background-color: #4b5563;
+            }
+            .rec-type-btn.active:hover {
+                background-color: #059669;
+            }
+            
 
             
             /* Adjust main content grid for desktop */
@@ -355,6 +371,72 @@
                     </div>
                 </div>
 
+                <!-- Recommended Page -->
+                <div id="recommended-page" class="page">
+                    <div class="space-y-4 overflow-y-auto no-scrollbar flex-grow">
+                        <!-- Search Header -->
+                        <div class="flex flex-col space-y-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="relative flex-1">
+                                    <input 
+                                        id="mood-search" 
+                                        type="text" 
+                                        placeholder="Describe what you're in the mood for..."
+                                        class="w-full bg-gray-800 text-white rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    >
+                                    <button 
+                                        id="mood-search-btn" 
+                                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-green-500 transition-colors"
+                                    >
+                                        <i data-lucide="search" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                <button 
+                                    id="refresh-recommendations" 
+                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
+                                >
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                    <span class="hidden md:inline">Refresh</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Type Toggles -->
+                            <div class="flex space-x-2">
+                                <button id="rec-movies-btn" class="rec-type-btn active flex-1 py-2 px-4 rounded-lg font-medium transition-colors">
+                                    Movies
+                                </button>
+                                <button id="rec-tv-btn" class="rec-type-btn flex-1 py-2 px-4 rounded-lg font-medium transition-colors">
+                                    TV Shows
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div id="recommendations-loading" class="hidden text-center py-8">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                            <p class="text-gray-400 mt-2">Analyzing your library and generating recommendations...</p>
+                        </div>
+
+                        <!-- Results Container -->
+                        <div id="recommendations-results" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                            <!-- Initial placeholder -->
+                            <div class="col-span-full text-center py-12">
+                                <i data-lucide="sparkles" class="w-16 h-16 mx-auto text-gray-600 mb-4"></i>
+                                <h3 class="text-xl font-semibold text-white mb-2">AI-Powered Recommendations</h3>
+                                <p class="text-gray-400 text-sm max-w-md mx-auto mb-4">
+                                    Get personalized movie and TV show recommendations based on your current library and mood.
+                                </p>
+                                <button 
+                                    id="start-recommendations" 
+                                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                                >
+                                    Get Recommendations
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Downloads Page -->
                 <div id="downloads-page" class="page">
                     <div id="sabnzbd-history" class="space-y-3 overflow-y-auto no-scrollbar flex-grow"></div>
@@ -426,6 +508,7 @@
                                 <select id="default-page" class="w-full form-input text-white rounded-lg p-2">
                                     <option value="tv-page">TV Shows (Calendar) - Default</option>
                                     <option value="movies-page">Movies</option>
+                                    <option value="recommended-page">Recommended</option>
                                     <option value="downloads-page">Downloads</option>
                                     <option value="settings-page">Settings</option>
                                 </select>
@@ -451,6 +534,10 @@
                 <div class="desktop-nav-item" data-page="tv-page">
                     <i data-lucide="tv"></i>
                     <span>TV Shows</span>
+                </div>
+                <div class="desktop-nav-item" data-page="recommended-page">
+                    <i data-lucide="sparkles"></i>
+                    <span>Recommended</span>
                 </div>
                 <div class="desktop-nav-item" data-page="downloads-page">
                     <i data-lucide="arrow-down-to-line"></i>
@@ -491,6 +578,9 @@
             <button data-page="tv-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
                 <i data-lucide="tv"></i><span class="text-xs mt-1">TV</span>
             </button>
+            <button data-page="recommended-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="sparkles"></i><span class="text-xs mt-1">Recommended</span>
+            </button>
             <button data-page="downloads-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
                 <i data-lucide="arrow-down-to-line"></i><span class="text-xs mt-1">Downloads</span>
             </button>
@@ -525,6 +615,9 @@
         let isTvActorSearch = false;
         let recentMoviePage = 1;
         let recentTvPage = 1;
+        let currentRecommendationType = 'movies';
+        let userLibraryMovies = [];
+        let userLibraryTvShows = [];
         
         // Configuration - Edit these values with your API keys and server details
         let userSettings = {
@@ -544,6 +637,213 @@
         // --- Utility Functions ---
         const isMobile = () => window.innerWidth < 768;
         const getResultsLimit = () => isMobile() ? 8 : 9;
+        
+        // --- Recommendation Functions ---
+        const fetchUserLibrary = async () => {
+            try {
+                // Fetch movies from Radarr
+                const moviesResponse = await apiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}`);
+                userLibraryMovies = moviesResponse.map(movie => ({
+                    title: movie.title,
+                    year: movie.year,
+                    genres: movie.genres?.map(g => g.name) || [],
+                    tmdbId: movie.tmdbId
+                }));
+
+                // Fetch TV shows from Sonarr
+                const tvResponse = await apiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`);
+                userLibraryTvShows = tvResponse.map(show => ({
+                    title: show.title,
+                    year: show.year,
+                    genres: show.genres || [],
+                    tvdbId: show.tvdbId
+                }));
+
+                console.log(`Library loaded: ${userLibraryMovies.length} movies, ${userLibraryTvShows.length} TV shows`);
+                return true;
+            } catch (error) {
+                console.error('Error fetching user library:', error);
+                showNotification('Unable to analyze your library. Please check your Sonarr/Radarr settings.', 'error');
+                return false;
+            }
+        };
+
+        const generateRecommendations = async (moodQuery = '') => {
+            if (!userSettings.geminiEnabled || !userSettings.geminiApi || userSettings.geminiApi === 'your-gemini-api-key-here') {
+                showNotification('Gemini AI is required for recommendations. Please configure your API key in Settings.', 'error');
+                return;
+            }
+
+            showRecommendationsLoading(true);
+
+            try {
+                const libraryData = currentRecommendationType === 'movies' ? userLibraryMovies : userLibraryTvShows;
+                const mediaType = currentRecommendationType === 'movies' ? 'movies' : 'TV shows';
+                
+                if (libraryData.length === 0) {
+                    showNotification(`No ${mediaType} found in your library. Add some content first.`, 'error');
+                    showRecommendationsLoading(false);
+                    return;
+                }
+
+                // Create library summary for AI analysis
+                const genres = [...new Set(libraryData.flatMap(item => item.genres))];
+                const librarySummary = {
+                    count: libraryData.length,
+                    genres: genres.slice(0, 15), // Top genres
+                    recentTitles: libraryData.slice(-10).map(item => `${item.title} (${item.year})`)
+                };
+
+                const prompt = moodQuery 
+                    ? `Based on my ${mediaType} library and my current mood: "${moodQuery}", recommend 6 ${mediaType} I should watch next. My library has ${librarySummary.count} ${mediaType} with genres: ${librarySummary.genres.join(', ')}. Recent additions: ${librarySummary.recentTitles.join(', ')}. 
+
+Respond with a JSON array of exactly 6 recommendations. Each should have: title, year, reason (why you're recommending it based on my library and mood). Focus on popular, well-reviewed titles that match my mood and complement my existing collection.`
+                    : `Analyze my ${mediaType} library and recommend 6 ${mediaType} I should add next. My library: ${librarySummary.count} ${mediaType}, main genres: ${librarySummary.genres.join(', ')}, recent: ${librarySummary.recentTitles.join(', ')}.
+
+Respond with a JSON array of exactly 6 recommendations. Each should have: title, year, reason (why it fits my collection). Choose popular, critically acclaimed titles that complement my existing taste.`;
+
+                const aiResponse = await callGeminiAPI(prompt);
+                const recommendations = JSON.parse(aiResponse);
+
+                await displayRecommendations(recommendations);
+                
+            } catch (error) {
+                console.error('Error generating recommendations:', error);
+                showNotification('Failed to generate recommendations. Please try again.', 'error');
+            } finally {
+                showRecommendationsLoading(false);
+            }
+        };
+
+        const displayRecommendations = async (recommendations) => {
+            const resultsContainer = recommendationsResults;
+            resultsContainer.innerHTML = '';
+
+            for (const rec of recommendations) {
+                try {
+                    // Search TMDB for the recommended title
+                    const searchQuery = currentRecommendationType === 'movies' 
+                        ? `${rec.title} ${rec.year}`
+                        : rec.title;
+                    
+                    const searchUrl = currentRecommendationType === 'movies'
+                        ? `https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(searchQuery)}`
+                        : `https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(searchQuery)}`;
+                    
+                    const searchResponse = await fetch(searchUrl);
+                    const searchData = await searchResponse.json();
+                    
+                    if (searchData.results && searchData.results.length > 0) {
+                        const item = searchData.results[0];
+                        const card = createRecommendationCard(item, rec.reason, currentRecommendationType);
+                        resultsContainer.appendChild(card);
+                    }
+                } catch (error) {
+                    console.error('Error fetching TMDB data for recommendation:', error);
+                }
+            }
+        };
+
+        const createRecommendationCard = (item, reason, type) => {
+            const title = type === 'movies' ? item.title : item.name;
+            const releaseDate = type === 'movies' ? item.release_date : item.first_air_date;
+            const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
+            const posterPath = item.poster_path 
+                ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                : '/api/placeholder/400/600';
+
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card-container cursor-pointer';
+            cardDiv.innerHTML = `
+                <div class="card bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                    <div class="card-front absolute inset-0 backface-hidden">
+                        <img src="${posterPath}" alt="${title}" class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                            <h3 class="font-semibold text-white text-sm leading-tight">${title}</h3>
+                            <p class="text-gray-300 text-xs">${year}</p>
+                        </div>
+                        <div class="absolute top-2 right-2">
+                            <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">Recommended</span>
+                        </div>
+                    </div>
+                    <div class="card-back absolute inset-0 backface-hidden rotate-y-180">
+                        <div class="h-full bg-gray-800 p-4 flex flex-col">
+                            <h3 class="font-bold text-white text-lg mb-2">${title}</h3>
+                            <p class="text-gray-300 text-sm mb-3">${year}</p>
+                            <div class="flex-grow">
+                                <h4 class="text-green-400 font-semibold text-sm mb-2">Why we recommend this:</h4>
+                                <p class="text-gray-300 text-xs leading-relaxed">${reason}</p>
+                            </div>
+                            <div class="mt-4 space-y-2">
+                                <button onclick="addTo${type === 'movies' ? 'Radarr' : 'Sonarr'}(${JSON.stringify(item).replace(/"/g, '&quot;')})" 
+                                        class="w-full action-btn text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                                    Add to ${type === 'movies' ? 'Radarr' : 'Sonarr'}
+                                </button>
+                                ${item.videos?.results?.length > 0 ? `
+                                    <button onclick="playTrailer('${item.videos.results[0].key}')" 
+                                            class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                                        Watch Trailer
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add click handler for card flip
+            cardDiv.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    cardDiv.querySelector('.card').classList.toggle('is-flipped');
+                }
+            });
+
+            return cardDiv;
+        };
+
+        const showRecommendationsLoading = (show) => {
+            if (show) {
+                recommendationsLoading.classList.remove('hidden');
+                recommendationsResults.innerHTML = '';
+            } else {
+                recommendationsLoading.classList.add('hidden');
+            }
+        };
+
+        const switchRecommendationType = (type) => {
+            currentRecommendationType = type;
+            
+            // Update button states
+            if (type === 'movies') {
+                recMoviesBtn.classList.add('active');
+                recTvBtn.classList.remove('active');
+            } else {
+                recTvBtn.classList.add('active');
+                recMoviesBtn.classList.remove('active');
+            }
+            
+            // Clear current results
+            recommendationsResults.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <i data-lucide="sparkles" class="w-16 h-16 mx-auto text-gray-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-white mb-2">AI-Powered ${type === 'movies' ? 'Movie' : 'TV Show'} Recommendations</h3>
+                    <p class="text-gray-400 text-sm max-w-md mx-auto mb-4">
+                        Get personalized recommendations based on your current library and mood.
+                    </p>
+                    <button onclick="startRecommendations()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors">
+                        Get Recommendations
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        };
+
+        const startRecommendations = async () => {
+            const libraryLoaded = await fetchUserLibrary();
+            if (libraryLoaded) {
+                await generateRecommendations();
+            }
+        };
         
         const createLoadMoreButton = (type) => {
             return `
@@ -568,6 +868,16 @@
         const tvResultsContainer = document.getElementById('tv-results');
         const tvSearchHeader = document.getElementById('tv-search-header');
         const sabnzbdHistoryContainer = document.getElementById('sabnzbd-history');
+        
+        // Recommendation page elements
+        const moodSearchInput = document.getElementById('mood-search');
+        const moodSearchBtn = document.getElementById('mood-search-btn');
+        const refreshRecommendationsBtn = document.getElementById('refresh-recommendations');
+        const startRecommendationsBtn = document.getElementById('start-recommendations');
+        const recMoviesBtn = document.getElementById('rec-movies-btn');
+        const recTvBtn = document.getElementById('rec-tv-btn');
+        const recommendationsLoading = document.getElementById('recommendations-loading');
+        const recommendationsResults = document.getElementById('recommendations-results');
         const sonarrCalendarContainer = document.getElementById('sonarr-calendar');
         const notificationModal = document.getElementById('notification-modal');
         const notificationMessage = document.getElementById('notification-message');
@@ -2224,6 +2534,46 @@
 
 
         applySettingsBtn.addEventListener('click', applySettings);
+
+        // Recommendation page event listeners
+        if (startRecommendationsBtn) {
+            startRecommendationsBtn.addEventListener('click', startRecommendations);
+        }
+        
+        if (refreshRecommendationsBtn) {
+            refreshRecommendationsBtn.addEventListener('click', () => {
+                const moodQuery = moodSearchInput?.value.trim() || '';
+                generateRecommendations(moodQuery);
+            });
+        }
+        
+        if (moodSearchBtn) {
+            moodSearchBtn.addEventListener('click', () => {
+                const moodQuery = moodSearchInput?.value.trim() || '';
+                if (moodQuery) {
+                    generateRecommendations(moodQuery);
+                }
+            });
+        }
+        
+        if (moodSearchInput) {
+            moodSearchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const moodQuery = e.target.value.trim();
+                    if (moodQuery) {
+                        generateRecommendations(moodQuery);
+                    }
+                }
+            });
+        }
+        
+        if (recMoviesBtn) {
+            recMoviesBtn.addEventListener('click', () => switchRecommendationType('movies'));
+        }
+        
+        if (recTvBtn) {
+            recTvBtn.addEventListener('click', () => switchRecommendationType('tv'));
+        }
 
         movieSearchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);

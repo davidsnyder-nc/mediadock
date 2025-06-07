@@ -534,7 +534,10 @@
 
         const loadSettings = async () => {
             try {
-                const response = await fetch('/config.json');
+                // Add cache-busting parameter to ensure fresh config load
+                const response = await fetch(`/config.json?t=${Date.now()}`, {
+                    cache: 'no-cache'
+                });
                 if (response.ok) {
                     userSettings = await response.json();
                     console.log('Loading settings from config.json:', userSettings);

@@ -379,6 +379,10 @@
                             <input id="sabnzbd-api" type="text" placeholder="SABnzbd API Key" class="w-full form-input text-white rounded-lg p-2">
                             <input id="tmdb-api" type="text" placeholder="TheMovieDB API Key (v3 Auth)" class="w-full form-input text-white rounded-lg p-2">
                             <input id="gemini-api" type="text" placeholder="Gemini API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                                <input id="gemini-enabled" type="checkbox" class="form-checkbox h-4 w-4 text-green-500 rounded">
+                                <label for="gemini-enabled" class="text-white text-sm">Enable Gemini witty descriptions</label>
+                            </div>
                             <select id="default-page" class="w-full form-input text-white rounded-lg p-2">
                                 <option value="tv-page">TV Shows (Calendar) - Default</option>
                                 <option value="movies-page">Movies</option>
@@ -488,6 +492,7 @@
             sabnzbdApi: "your-sabnzbd-api-key-here",
             tmdbApi: "your-tmdb-api-key-here",
             geminiApi: "your-gemini-api-key-here",
+            geminiEnabled: true,
             defaultPage: "tv-page"
         };
 
@@ -1576,7 +1581,7 @@
                                         <div class="card-back-overlay">
                                             <h3 class="text-white text-lg font-bold text-center mb-2">${movie.title}</h3>
                                             <div class="text-gray-200 text-sm text-center mb-4 line-clamp-4" id="movie-desc-${movie.id}">
-                                                Loading witty description...
+                                                ${movie.overview || 'No description available'}
                                             </div>
                                             <div class="flex flex-col space-y-2 w-full">
                                                 <button onclick="event.stopPropagation(); playTrailer('${movie.title}', ${movie.tmdbId || 'null'})" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
@@ -1614,10 +1619,12 @@
                         </div>
                     `;
 
-                    // Generate witty descriptions for all recent movies
-                    paginatedMovies.forEach(async (movie) => {
-                        generateWittyDescription(movie.title, movie.id);
-                    });
+                    // Generate witty descriptions for all recent movies if enabled
+                    if (userSettings.geminiEnabled) {
+                        paginatedMovies.forEach(async (movie) => {
+                            generateWittyDescription(movie.title, movie.id, movie.overview);
+                        });
+                    }
                     
                     lucide.createIcons();
                 } else {
@@ -1632,20 +1639,22 @@
         // Load more recent movies function
         window.loadMoreRecentMovies = () => {
             recentMoviePage++;
-            loadRadarrRecent(recentMoviePage);
-            // Auto scroll to top of page
+            // Auto scroll to top of page immediately
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Small delay to ensure scroll starts before loading content
+            setTimeout(() => {
+                loadRadarrRecent(recentMoviePage);
+            }, 100);
         };
 
-        // Generate witty descriptions using Gemini
-        const generateWittyDescription = async (movieTitle, movieId) => {
+        // Generate witty descriptions using Gemini with fallback
+        const generateWittyDescription = async (movieTitle, movieId, fallbackDescription = null) => {
+            const descElement = document.getElementById(`movie-desc-${movieId}`);
+            const fallback = fallbackDescription || 'No description available';
+            
             try {
-                if (!userSettings.geminiApi || userSettings.geminiApi === 'your-gemini-api-key-here') {
-                    const descElement = document.getElementById(`movie-desc-${movieId}`);
-                    if (descElement) {
-                        descElement.innerHTML = 'Witty description unavailable - Gemini API key needed';
-                    }
-                    return;
+                if (!userSettings.geminiEnabled || !userSettings.geminiApi || userSettings.geminiApi === 'your-gemini-api-key-here') {
+                    return; // Keep original description
                 }
 
                 const prompt = `Create a witty, clever 15-word movie description for "${movieTitle}". Be sarcastic, funny, and memorable. No generic language.`;
@@ -1672,24 +1681,19 @@
                 if (response.ok) {
                     const data = await response.json();
                     const wittyDesc = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-                    if (wittyDesc) {
-                        const descElement = document.getElementById(`movie-desc-${movieId}`);
-                        if (descElement) {
-                            descElement.innerHTML = wittyDesc;
-                        }
+                    if (wittyDesc && descElement) {
+                        descElement.innerHTML = wittyDesc;
                     }
                 } else {
-                    console.log('Gemini API response error:', response.status);
-                    const descElement = document.getElementById(`movie-desc-${movieId}`);
+                    console.log('Gemini API failed, using fallback description');
                     if (descElement) {
-                        descElement.innerHTML = 'Witty description failed to load';
+                        descElement.innerHTML = fallback;
                     }
                 }
             } catch (error) {
-                console.log('Witty description generation failed:', error);
-                const descElement = document.getElementById(`movie-desc-${movieId}`);
+                console.log('Gemini generation failed, using fallback description:', error);
                 if (descElement) {
-                    descElement.innerHTML = 'Description unavailable';
+                    descElement.innerHTML = fallback;
                 }
             }
         };

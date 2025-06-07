@@ -1647,37 +1647,25 @@
                     sonarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 }
 
-                // Get series with episode files using history endpoint for better performance
-                const [seriesResponse, historyResponse] = await Promise.all([
-                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`),
-                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/history?pageSize=1000&sortKey=date&sortDirection=descending&apikey=${userSettings.sonarrApi}`)
-                ]);
+                // Get all series from Sonarr and sort by most recent file date
+                const seriesResponse = await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`);
                 
-                if (seriesResponse && historyResponse && historyResponse.records && historyResponse.records.length > 0) {
-                    // Filter to only downloaded episodes and group by series
-                    const downloadedEpisodes = historyResponse.records
-                        .filter(record => record.eventType === 'downloadFolderImported' && record.date);
+                if (seriesResponse && Array.isArray(seriesResponse)) {
+                    // Filter series that have episode files and get their most recent file date
+                    const seriesWithFiles = seriesResponse
+                        .filter(series => series.statistics && series.statistics.episodeFileCount > 0)
+                        .map(series => {
+                            // Use the series' last updated date as a proxy for most recent activity
+                            const lastUpdated = series.lastInfoSync || series.added || new Date().toISOString();
+                            return {
+                                series: series,
+                                latestEpisodeDate: lastUpdated,
+                                episodeCount: series.statistics.episodeFileCount
+                            };
+                        });
 
-                    // Group by series ID and track most recent download per series
-                    const seriesMap = {};
-                    downloadedEpisodes.forEach(record => {
-                        if (!seriesMap[record.seriesId] || new Date(record.date) > new Date(seriesMap[record.seriesId].latestEpisodeDate)) {
-                            const series = seriesResponse.find(s => s.id === record.seriesId);
-                            if (series) {
-                                // Count total downloaded episodes for this series
-                                const seriesEpisodeCount = downloadedEpisodes.filter(ep => ep.seriesId === record.seriesId).length;
-                                
-                                seriesMap[record.seriesId] = {
-                                    series: series,
-                                    latestEpisodeDate: record.date,
-                                    episodeCount: seriesEpisodeCount
-                                };
-                            }
-                        }
-                    });
-
-                    // Convert to array and sort by latest episode date
-                    const sortedSeries = Object.values(seriesMap)
+                    // Sort by most recent activity
+                    const sortedSeries = seriesWithFiles
                         .sort((a, b) => new Date(b.latestEpisodeDate) - new Date(a.latestEpisodeDate));
                     
                     console.log(`Found ${sortedSeries.length} unique series with recent downloads`);
@@ -1949,7 +1937,7 @@
                         <div class="text-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-300">Recently Added Movies (Page ${page})</h3>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             ${moviesHtml}
                             ${loadMoreHtml}
                         </div>

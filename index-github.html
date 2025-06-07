@@ -332,6 +332,7 @@
                 <!-- TV Shows Page -->
                 <div id="tv-page" class="page">
                      <div class="flex justify-center mb-4 bg-gray-800 rounded-lg p-1">
+                        <button id="tv-recent-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Recent</button>
                         <button id="tv-calendar-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Calendar</button>
                         <button id="tv-search-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Search</button>
                     </div>
@@ -342,6 +343,7 @@
                         </div>
                     </div>
                     <div id="tv-content-area" class="overflow-y-auto no-scrollbar flex-grow">
+                        <div id="sonarr-recent" class="hidden"></div>
                         <div id="sonarr-calendar" class="space-y-1 hidden"></div>
                         <div id="tv-search-header" class="mb-4 hidden"></div>
                         <div id="tv-results" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -484,6 +486,7 @@
         let isMovieActorSearch = false;
         let isTvActorSearch = false;
         let recentMoviePage = 1;
+        let recentTvPage = 1;
         
         // Configuration - Edit these values with your API keys and server details
         let userSettings = {
@@ -532,10 +535,12 @@
         const trailerModal = document.getElementById('trailer-modal');
         const closeTrailerBtn = document.getElementById('close-trailer-btn');
         const trailerContainer = document.getElementById('trailer-container');
+        const tvRecentBtn = document.getElementById('tv-recent-btn');
         const tvCalendarBtn = document.getElementById('tv-calendar-btn');
         const tvSearchBtn = document.getElementById('tv-search-btn');
         const tvSearchContainer = document.getElementById('tv-search-container');
         const tvContentArea = document.getElementById('tv-content-area');
+        const sonarrRecentContainer = document.getElementById('sonarr-recent');
 
         // --- Helper Functions ---
         const showNotification = (message, type = 'info') => {
@@ -759,8 +764,8 @@
                     // If already on TV page, switch to search
                     toggleTvView('search');
                 } else {
-                    // First time loading TV page, default to calendar
-                    toggleTvView('calendar');
+                    // First time loading TV page, default to recent
+                    toggleTvView('recent');
                 }
             } else if (pageId === 'movies-page') {
                 // Load recent movies by default when movies page is shown
@@ -774,26 +779,62 @@
 
         // --- TV Toggle Functions ---
         const toggleTvView = (view) => {
+            const recentBtn = tvRecentBtn;
             const calendarBtn = tvCalendarBtn;
             const searchBtn = tvSearchBtn;
             const searchContainer = tvSearchContainer;
             const calendarContainer = sonarrCalendarContainer;
+            const recentContainer = sonarrRecentContainer;
             const resultsContainer = tvResultsContainer;
             const defaultContent = document.getElementById('tv-default-content');
 
+            // Hide all containers first
+            recentContainer?.classList.add('hidden');
+            calendarContainer?.classList.add('hidden');
+            resultsContainer?.classList.add('hidden');
+            searchContainer?.classList.add('hidden');
+            
+            // Remove active state from all buttons
+            recentBtn?.classList.remove('active');
+            calendarBtn?.classList.remove('active');
+            searchBtn?.classList.remove('active');
 
-
-            if (view === 'calendar') {
-                calendarBtn?.classList.add('active');
-                searchBtn?.classList.remove('active');
-                searchContainer?.classList.add('hidden');
-                calendarContainer?.classList.remove('hidden');
-                resultsContainer?.classList.add('hidden');
-                resultsContainer?.classList.remove('grid');
+            if (view === 'recent') {
+                recentBtn?.classList.add('active');
+                recentContainer?.classList.remove('hidden');
                 
-                // Clear search results and headers when switching to calendar
+                // Clear other content areas
                 if (resultsContainer) {
                     resultsContainer.innerHTML = resultsContainer.innerHTML.includes('tv-default-content') ? resultsContainer.innerHTML : '';
+                }
+                if (calendarContainer) {
+                    calendarContainer.innerHTML = '';
+                }
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
+                
+                // Clear search input
+                const searchInput = document.getElementById('tv-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                
+                // Reset search state
+                currentTvQuery = '';
+                tvPage = 1;
+                recentTvPage = 1;
+                
+                loadSonarrRecent();
+            } else if (view === 'calendar') {
+                calendarBtn?.classList.add('active');
+                calendarContainer?.classList.remove('hidden');
+                
+                // Clear other content areas
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = resultsContainer.innerHTML.includes('tv-default-content') ? resultsContainer.innerHTML : '';
+                }
+                if (recentContainer) {
+                    recentContainer.innerHTML = '';
                 }
                 tvSearchHeader.innerHTML = '';
                 tvSearchHeader.classList.add('hidden');
@@ -809,16 +850,17 @@
                 tvPage = 1;
                 
                 loadSonarrCalendar();
-            } else {
+            } else { // search
                 searchBtn?.classList.add('active');
-                calendarBtn?.classList.remove('active');
                 searchContainer?.classList.remove('hidden');
-                calendarContainer?.classList.add('hidden');
                 resultsContainer?.classList.remove('hidden');
                 
-                // Clear any existing calendar content to prevent interference
+                // Clear other content areas
                 if (calendarContainer) {
                     calendarContainer.innerHTML = '';
+                }
+                if (recentContainer) {
+                    recentContainer.innerHTML = '';
                 }
                 
                 // Show default content when switching to search tab with empty search
@@ -1558,6 +1600,151 @@
             }
         };
 
+        // --- Sonarr Recent TV Shows Function ---
+        const loadSonarrRecent = async (page = 1) => {
+            const sonarrRecentContainer = document.getElementById('sonarr-recent');
+            
+            if (!userSettings.sonarrUrl || !userSettings.sonarrApi) {
+                sonarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please configure Sonarr settings</p>';
+                return;
+            }
+
+            try {
+                if (page === 1) {
+                    sonarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
+                }
+
+                // Get all series and their episodes
+                const [seriesResponse, episodesResponse] = await Promise.all([
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`),
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/episode?apikey=${userSettings.sonarrApi}`)
+                ]);
+                
+                if (seriesResponse && episodesResponse && episodesResponse.length > 0) {
+                    // Get episodes with files and recent dates, grouped by series
+                    const recentEpisodes = episodesResponse
+                        .filter(episode => episode.hasFile && episode.episodeFile?.dateAdded)
+                        .sort((a, b) => new Date(b.episodeFile.dateAdded) - new Date(a.episodeFile.dateAdded));
+
+                    // Group episodes by series and get the most recent episode date for each series
+                    const seriesMap = {};
+                    recentEpisodes.forEach(episode => {
+                        if (!seriesMap[episode.seriesId]) {
+                            const series = seriesResponse.find(s => s.id === episode.seriesId);
+                            if (series) {
+                                seriesMap[episode.seriesId] = {
+                                    series: series,
+                                    latestEpisodeDate: episode.episodeFile.dateAdded,
+                                    episodeCount: 1
+                                };
+                            }
+                        } else {
+                            seriesMap[episode.seriesId].episodeCount++;
+                        }
+                    });
+
+                    // Convert to array and sort by latest episode date
+                    const sortedSeries = Object.values(seriesMap)
+                        .sort((a, b) => new Date(b.latestEpisodeDate) - new Date(a.latestEpisodeDate));
+                    
+                    // Calculate pagination
+                    const startIndex = (page - 1) * 12;
+                    const endIndex = startIndex + 12;
+                    const paginatedSeries = sortedSeries.slice(startIndex, endIndex);
+                    const hasMoreSeries = endIndex < sortedSeries.length;
+
+                    const seriesHtml = paginatedSeries.map(item => {
+                        const series = item.series;
+                        const posterUrl = series.images?.find(img => img.coverType === 'poster')?.remoteUrl || 'https://via.placeholder.com/300x450?text=No+Image';
+                        const year = series.year || 'Unknown';
+                        const episodeText = item.episodeCount === 1 ? '1 episode' : `${item.episodeCount} episodes`;
+                        
+                        return `
+                            <div class="card-container w-full" onclick="flipCard(this, ${series.id})">
+                                <div class="card">
+                                    <div class="card-front">
+                                        <img src="${posterUrl}" alt="${series.title}" class="w-full h-full object-cover rounded-lg">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3">
+                                            <h3 class="text-white text-sm font-semibold truncate">${series.title}</h3>
+                                            <p class="text-gray-300 text-xs">${year} • <span class="text-green-400">${episodeText}</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="card-back" style="background-image: url('${posterUrl}');">
+                                        <div class="card-back-overlay">
+                                            <h3 class="text-white text-lg font-bold text-center mb-2">${series.title}</h3>
+                                            <div class="text-gray-200 text-sm text-center mb-4 line-clamp-4" id="tv-desc-${series.id}">
+                                                ${series.overview || 'No description available'}
+                                            </div>
+                                            <div class="flex flex-col space-y-2 w-full">
+                                                <button onclick="event.stopPropagation(); watchTrailer('${series.tvdbId}', 'tv')" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
+                                                    <i data-lucide="play" class="w-3 h-3"></i>
+                                                    <span>Trailer</span>
+                                                </button>
+                                                <div class="text-center text-xs text-gray-300">
+                                                    <span>${year}</span>
+                                                    <span class="ml-2">★ ${series.ratings?.value ? series.ratings.value.toFixed(1) : 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const loadMoreHtml = hasMoreSeries ? `
+                        <div class="col-span-full flex justify-center mt-6">
+                            <button onclick="loadMoreRecentTvShows()" class="btn-primary px-6 py-2 rounded-lg">
+                                Load More TV Shows
+                            </button>
+                        </div>
+                    ` : '';
+
+                    if (page === 1) {
+                        sonarrRecentContainer.innerHTML = `
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                ${seriesHtml}
+                                ${loadMoreHtml}
+                            </div>
+                        `;
+                    } else {
+                        const existingGrid = sonarrRecentContainer.querySelector('.grid');
+                        const loadMoreButton = existingGrid.querySelector('.col-span-full');
+                        if (loadMoreButton) loadMoreButton.remove();
+                        
+                        existingGrid.innerHTML += seriesHtml + loadMoreHtml;
+                    }
+
+                    // Generate witty descriptions for TV shows if enabled
+                    if (userSettings.geminiEnabled) {
+                        paginatedSeries.forEach(async (item) => {
+                            generateWittyDescription(item.series.title, item.series.id, item.series.overview);
+                        });
+                    }
+                    
+                    lucide.createIcons();
+                } else {
+                    sonarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No recent TV shows found in Sonarr</p>';
+                }
+            } catch (error) {
+                console.error('Error loading Sonarr recent TV shows:', error);
+                sonarrRecentContainer.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load recent TV shows</p>';
+            }
+        };
+
+        // Load more recent TV shows function
+        window.loadMoreRecentTvShows = () => {
+            recentTvPage++;
+            // Auto scroll to top of page with improved timing
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 50);
+            // Load content after scroll begins
+            setTimeout(() => {
+                loadSonarrRecent(recentTvPage);
+            }, 200);
+        };
+
         // --- Load Radarr Movie Count for Quick Stats ---
         const loadRadarrMovieCount = async () => {
             const moviesCountElement = document.getElementById('movies-count');
@@ -1887,6 +2074,7 @@
             }
         });
 
+        tvRecentBtn.addEventListener('click', () => toggleTvView('recent'));
         tvCalendarBtn.addEventListener('click', () => toggleTvView('calendar'));
         tvSearchBtn.addEventListener('click', () => toggleTvView('search'));
 

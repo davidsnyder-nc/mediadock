@@ -1692,11 +1692,27 @@
                     console.log(`Page ${page}: showing ${paginatedSeries.length} series (${startIndex}-${endIndex} of ${sortedSeries.length})`);
                     console.log(`Has more series: ${hasMoreSeries}`);
 
+                    // Pre-fetch Gemini descriptions if enabled
+                    const tvDescriptions = {};
+                    if (userSettings.geminiEnabled) {
+                        await Promise.all(paginatedSeries.map(async (item) => {
+                            try {
+                                const wittyDesc = await getWittyTvDescription(item.series.title, item.series.id, item.series.overview);
+                                if (wittyDesc) {
+                                    tvDescriptions[item.series.id] = wittyDesc;
+                                }
+                            } catch (error) {
+                                console.log('Failed to pre-fetch description for', item.series.title);
+                            }
+                        }));
+                    }
+
                     const seriesHtml = paginatedSeries.map(item => {
                         const series = item.series;
                         const posterUrl = series.images?.find(img => img.coverType === 'poster')?.remoteUrl || 'https://via.placeholder.com/300x450?text=No+Image';
                         const year = series.year || 'Unknown';
                         const episodeText = item.episodeCount === 1 ? '1 episode' : `${item.episodeCount} episodes`;
+                        const description = tvDescriptions[series.id] || series.overview || 'No description available';
                         
                         return `
                             <div class="card-container w-full" onclick="flipCard(this, ${series.id})">
@@ -1712,7 +1728,7 @@
                                         <div class="card-back-overlay">
                                             <h3 class="text-white text-lg font-bold text-center mb-2">${series.title}</h3>
                                             <div class="text-gray-200 text-sm text-center mb-4 line-clamp-4" id="tv-desc-${series.id}">
-                                                ${series.overview || 'No description available'}
+                                                ${description}
                                             </div>
                                             <div class="flex flex-col space-y-2 w-full">
                                                 <button onclick="event.stopPropagation(); watchTvTrailerBySeries('${series.title}', '${series.year || ''}')" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
@@ -1760,13 +1776,6 @@
                                 </button>
                             </div>
                         ` : '');
-                    }
-
-                    // Generate witty descriptions for TV shows if enabled
-                    if (userSettings.geminiEnabled) {
-                        paginatedSeries.forEach(async (item) => {
-                            generateWittyTvDescription(item.series.title, item.series.id, item.series.overview);
-                        });
                     }
                     
                     lucide.createIcons();
@@ -1872,11 +1881,27 @@
                     const paginatedMovies = sortedMovies.slice(startIndex, endIndex);
                     const hasMoreMovies = endIndex < sortedMovies.length;
 
+                    // Pre-fetch Gemini descriptions for movies if enabled
+                    const movieDescriptions = {};
+                    if (userSettings.geminiEnabled) {
+                        await Promise.all(paginatedMovies.map(async (movie) => {
+                            try {
+                                const wittyDesc = await getWittyMovieDescription(movie.title, movie.id, movie.overview);
+                                if (wittyDesc) {
+                                    movieDescriptions[movie.id] = wittyDesc;
+                                }
+                            } catch (error) {
+                                console.log('Failed to pre-fetch description for', movie.title);
+                            }
+                        }));
+                    }
+
                     const moviesHtml = paginatedMovies.map(movie => {
                         const posterUrl = movie.images?.find(img => img.coverType === 'poster')?.remoteUrl || 'https://via.placeholder.com/300x450?text=No+Image';
                         const year = movie.year || 'Unknown';
                         const status = movie.hasFile ? 'Downloaded' : 'Missing';
                         const statusColor = movie.hasFile ? 'text-green-400' : 'text-yellow-400';
+                        const description = movieDescriptions[movie.id] || movie.overview || 'No description available';
                         
                         return `
                             <div class="card-container w-full" onclick="flipCard(this, ${movie.id})">
@@ -1892,7 +1917,7 @@
                                         <div class="card-back-overlay">
                                             <h3 class="text-white text-lg font-bold text-center mb-2">${movie.title}</h3>
                                             <div class="text-gray-200 text-sm text-center mb-4 line-clamp-4" id="movie-desc-${movie.id}">
-                                                ${movie.overview || 'No description available'}
+                                                ${description}
                                             </div>
                                             <div class="flex flex-col space-y-2 w-full">
                                                 <button onclick="event.stopPropagation(); playTrailer('${movie.title}', ${movie.tmdbId || 'null'})" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
@@ -1930,13 +1955,6 @@
                         </div>
                     `;
 
-                    // Generate witty descriptions for all recent movies if enabled
-                    if (userSettings.geminiEnabled) {
-                        paginatedMovies.forEach(async (movie) => {
-                            generateWittyDescription(movie.title, movie.id, movie.overview);
-                        });
-                    }
-                    
                     lucide.createIcons();
                 } else {
                     radarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No movies found in Radarr</p>';
@@ -1960,14 +1978,13 @@
             }, 200);
         };
 
-        // Generate witty descriptions using Gemini with fallback
-        const generateWittyDescription = async (movieTitle, movieId, fallbackDescription = null) => {
-            const descElement = document.getElementById(`movie-desc-${movieId}`);
+        // Generate witty descriptions for movies using Gemini (returns the description instead of setting DOM)
+        const getWittyMovieDescription = async (movieTitle, movieId, fallbackDescription = null) => {
             const fallback = fallbackDescription || 'No description available';
             
             try {
                 if (!userSettings.geminiEnabled || !userSettings.geminiApi || userSettings.geminiApi === 'your-gemini-api-key-here') {
-                    return; // Keep original description
+                    return fallback; // Return original description
                 }
 
                 const prompt = `Create a witty, clever 15-word movie description for "${movieTitle}". Be sarcastic, funny, and memorable. No generic language.`;
@@ -1994,31 +2011,33 @@
                 if (response.ok) {
                     const data = await response.json();
                     const wittyDesc = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-                    if (wittyDesc && descElement) {
-                        descElement.innerHTML = wittyDesc;
-                    }
+                    return wittyDesc || fallback;
                 } else {
                     console.log('Gemini API failed, using fallback description');
-                    if (descElement) {
-                        descElement.innerHTML = fallback;
-                    }
+                    return fallback;
                 }
             } catch (error) {
                 console.log('Gemini generation failed, using fallback description:', error);
-                if (descElement) {
-                    descElement.innerHTML = fallback;
-                }
+                return fallback;
             }
         };
 
-        // Generate witty descriptions for TV shows using Gemini
-        const generateWittyTvDescription = async (tvTitle, tvId, fallbackDescription = null) => {
-            const descElement = document.getElementById(`tv-desc-${tvId}`);
+        // Keep the old function for backward compatibility but make it use the new one
+        const generateWittyDescription = async (movieTitle, movieId, fallbackDescription = null) => {
+            const descElement = document.getElementById(`movie-desc-${movieId}`);
+            const description = await getWittyMovieDescription(movieTitle, movieId, fallbackDescription);
+            if (descElement) {
+                descElement.innerHTML = description;
+            }
+        };
+
+        // Generate witty descriptions for TV shows using Gemini (returns the description instead of setting DOM)
+        const getWittyTvDescription = async (tvTitle, tvId, fallbackDescription = null) => {
             const fallback = fallbackDescription || 'No description available';
             
             try {
                 if (!userSettings.geminiEnabled || !userSettings.geminiApi || userSettings.geminiApi === 'your-gemini-api-key-here') {
-                    return; // Keep original description
+                    return fallback; // Return original description
                 }
 
                 const prompt = `Create a witty, clever 15-word TV show description for "${tvTitle}". Be sarcastic, funny, and memorable. No generic language.`;
@@ -2045,20 +2064,23 @@
                 if (response.ok) {
                     const data = await response.json();
                     const wittyDesc = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-                    if (wittyDesc && descElement) {
-                        descElement.innerHTML = wittyDesc;
-                    }
+                    return wittyDesc || fallback;
                 } else {
                     console.log('Gemini TV API failed, using fallback description');
-                    if (descElement) {
-                        descElement.innerHTML = fallback;
-                    }
+                    return fallback;
                 }
             } catch (error) {
                 console.log('Gemini TV generation failed, using fallback description:', error);
-                if (descElement) {
-                    descElement.innerHTML = fallback;
-                }
+                return fallback;
+            }
+        };
+
+        // Keep the old function for backward compatibility but make it use the new one
+        const generateWittyTvDescription = async (tvTitle, tvId, fallbackDescription = null) => {
+            const descElement = document.getElementById(`tv-desc-${tvId}`);
+            const description = await getWittyTvDescription(tvTitle, tvId, fallbackDescription);
+            if (descElement) {
+                descElement.innerHTML = description;
             }
         };
 

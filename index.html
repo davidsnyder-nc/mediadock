@@ -640,14 +640,24 @@
                 // Get movie details from TMDB
                 const movieData = await makeApiRequest(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${userSettings.tmdbApi}`);
                 
+                // Get Radarr root folders and quality profiles
+                const [rootFolders, qualityProfiles] = await Promise.all([
+                    makeApiRequest(`${userSettings.radarrUrl}/api/v3/rootfolder?apikey=${userSettings.radarrApi}`),
+                    makeApiRequest(`${userSettings.radarrUrl}/api/v3/qualityprofile?apikey=${userSettings.radarrApi}`)
+                ]);
+
+                // Use first available root folder and quality profile
+                const rootFolderPath = rootFolders[0]?.path || "/movies/";
+                const qualityProfileId = qualityProfiles[0]?.id || 1;
+                
                 // Add to Radarr
                 const radarrPayload = {
                     title: movieData.title,
-                    qualityProfileId: 1,
+                    qualityProfileId: qualityProfileId,
                     monitored: true,
                     tmdbId: parseInt(tmdbId),
                     year: new Date(movieData.release_date).getFullYear(),
-                    rootFolderPath: "/movies/",
+                    rootFolderPath: rootFolderPath,
                     addOptions: { searchForMovie: true }
                 };
 
@@ -674,13 +684,23 @@
                 // Get TV show details from TMDB
                 const showData = await makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${userSettings.tmdbApi}`);
                 
+                // Get Sonarr root folders and quality profiles
+                const [rootFolders, qualityProfiles] = await Promise.all([
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/rootfolder?apikey=${userSettings.sonarrApi}`),
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/qualityprofile?apikey=${userSettings.sonarrApi}`)
+                ]);
+
+                // Use first available root folder and quality profile
+                const rootFolderPath = rootFolders[0]?.path || "/tv/";
+                const qualityProfileId = qualityProfiles[0]?.id || 1;
+                
                 // Convert TMDB data to Sonarr format
                 const sonarrPayload = {
                     title: showData.name,
-                    qualityProfileId: 1,
+                    qualityProfileId: qualityProfileId,
                     monitored: true,
-                    tvdbId: 0, // Would need additional API call to get TVDB ID
-                    rootFolderPath: "/tv/",
+                    tvdbId: 0, // Sonarr can work without TVDB ID for TMDB-based shows
+                    rootFolderPath: rootFolderPath,
                     addOptions: { searchForMissingEpisodes: true }
                 };
 

@@ -1623,23 +1623,23 @@
                 if (seriesResponse && historyResponse && historyResponse.records && historyResponse.records.length > 0) {
                     // Filter to only downloaded episodes and group by series
                     const downloadedEpisodes = historyResponse.records
-                        .filter(record => record.eventType === 'downloadFolderImported' && record.date)
-                        .slice(0, 100); // Limit to recent 100 downloads for performance
+                        .filter(record => record.eventType === 'downloadFolderImported' && record.date);
 
-                    // Group by series and get the most recent download date
+                    // Group by series ID and track most recent download per series
                     const seriesMap = {};
                     downloadedEpisodes.forEach(record => {
-                        if (!seriesMap[record.seriesId]) {
+                        if (!seriesMap[record.seriesId] || new Date(record.date) > new Date(seriesMap[record.seriesId].latestEpisodeDate)) {
                             const series = seriesResponse.find(s => s.id === record.seriesId);
                             if (series) {
+                                // Count total downloaded episodes for this series
+                                const seriesEpisodeCount = downloadedEpisodes.filter(ep => ep.seriesId === record.seriesId).length;
+                                
                                 seriesMap[record.seriesId] = {
                                     series: series,
                                     latestEpisodeDate: record.date,
-                                    episodeCount: 1
+                                    episodeCount: seriesEpisodeCount
                                 };
                             }
-                        } else {
-                            seriesMap[record.seriesId].episodeCount++;
                         }
                     });
 

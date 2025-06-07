@@ -390,11 +390,14 @@
                                 <option value="settings-page">Settings</option>
                             </select>
                         </div>
+                        <button id="apply-settings" class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg mb-2">
+                            Apply Settings
+                        </button>
                         <button id="save-settings" class="w-full action-btn text-white font-bold py-2 px-4 rounded-lg">
                             Copy Config to Clipboard
                         </button>
                         <p class="text-gray-400 text-xs mt-2 text-center">
-                            After copying, paste the configuration into your config.json file and refresh the page.
+                            Use "Apply Settings" to save changes temporarily, or "Copy Config" for permanent storage.
                         </p>
                     </div>
                 </div>
@@ -484,14 +487,14 @@
         
         // Configuration - Edit these values with your API keys and server details
         let userSettings = {
-            sonarrUrl: "http://your-server-ip:8989",
-            sonarrApi: "your-sonarr-api-key-here",
-            radarrUrl: "http://your-server-ip:7878", 
-            radarrApi: "your-radarr-api-key-here",
-            sabnzbdUrl: "http://your-server-ip:8080",
-            sabnzbdApi: "your-sabnzbd-api-key-here",
-            tmdbApi: "your-tmdb-api-key-here",
-            geminiApi: "your-gemini-api-key-here",
+            sonarrUrl: "http://192.168.1.20:8989",
+            sonarrApi: "d5c8a95b50ca4eb6ac7c34d64a1b5069",
+            radarrUrl: "http://192.168.1.20:7878", 
+            radarrApi: "ac1e729c49c84c3096f30eea6791707f",
+            sabnzbdUrl: "http://192.168.1.20:8080",
+            sabnzbdApi: "55af5171b46143b1872ed07b622262df",
+            tmdbApi: "607da9c4fc03dd0c28b2098e855c73db",
+            geminiApi: "AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg",
             geminiEnabled: true,
             defaultPage: "tv-page"
         };
@@ -515,6 +518,7 @@
         const navButtons = document.querySelectorAll('.nav-button');
         const pages = document.querySelectorAll('.page');
         const saveSettingsBtn = document.getElementById('save-settings');
+        const applySettingsBtn = document.getElementById('apply-settings');
         const movieSearchInput = document.getElementById('movie-search');
         const tvSearchInput = document.getElementById('tv-search');
         const movieResultsContainer = document.getElementById('movie-results');
@@ -560,6 +564,25 @@
             }
         };
 
+        const applySettings = () => {
+            // Update userSettings object with form values
+            userSettings = {
+                sonarrUrl: document.getElementById('sonarr-url').value || userSettings.sonarrUrl,
+                sonarrApi: document.getElementById('sonarr-api').value || userSettings.sonarrApi,
+                radarrUrl: document.getElementById('radarr-url').value || userSettings.radarrUrl,
+                radarrApi: document.getElementById('radarr-api').value || userSettings.radarrApi,
+                sabnzbdUrl: document.getElementById('sabnzbd-url').value || userSettings.sabnzbdUrl,
+                sabnzbdApi: document.getElementById('sabnzbd-api').value || userSettings.sabnzbdApi,
+                tmdbApi: document.getElementById('tmdb-api').value || userSettings.tmdbApi,
+                geminiApi: document.getElementById('gemini-api').value || userSettings.geminiApi,
+                geminiEnabled: document.getElementById('gemini-enabled').checked,
+                defaultPage: document.getElementById('default-page').value || userSettings.defaultPage
+            };
+            
+            showNotification('Settings applied successfully!', 'success');
+            console.log('Settings updated:', userSettings);
+        };
+
         const copyConfigToClipboard = () => {
             const settings = {
                 sonarrUrl: document.getElementById('sonarr-url').value,
@@ -570,6 +593,7 @@
                 sabnzbdApi: document.getElementById('sabnzbd-api').value,
                 tmdbApi: document.getElementById('tmdb-api').value,
                 geminiApi: document.getElementById('gemini-api').value,
+                geminiEnabled: document.getElementById('gemini-enabled').checked,
                 defaultPage: document.getElementById('default-page').value
             };
             
@@ -611,6 +635,12 @@
             const defaultPageSelect = document.getElementById('default-page');
             if (defaultPageSelect) {
                 defaultPageSelect.value = userSettings.defaultPage || 'tv-page';
+            }
+
+            // Handle Gemini toggle
+            const geminiToggle = document.getElementById('gemini-enabled');
+            if (geminiToggle) {
+                geminiToggle.checked = userSettings.geminiEnabled !== false;
             }
         };
 
@@ -1776,6 +1806,7 @@
         });
 
         saveSettingsBtn.addEventListener('click', copyConfigToClipboard);
+        applySettingsBtn.addEventListener('click', applySettings);
 
         movieSearchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);

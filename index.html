@@ -667,6 +667,8 @@
 
         // --- Navigation ---
         const showPage = (pageId) => {
+            const wasAlreadyOnTvPage = currentPage === 'tv-page' && pageId === 'tv-page';
+            
             pages.forEach(page => page.classList.remove('active'));
             navButtons.forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.desktop-nav-item').forEach(item => item.classList.remove('active'));
@@ -681,8 +683,13 @@
             currentPage = pageId;
 
             if (pageId === 'tv-page') {
-                // Default to search tab instead of calendar
-                toggleTvView('search');
+                if (wasAlreadyOnTvPage) {
+                    // If already on TV page, switch to search
+                    toggleTvView('search');
+                } else {
+                    // First time loading TV page, default to calendar
+                    toggleTvView('calendar');
+                }
             } else if (pageId === 'downloads-page') {
                 loadSabnzbdHistory();
             } else if (pageId === 'settings-page') {

@@ -849,30 +849,50 @@
                 const resultsLimit = getResultsLimit();
                 
                 if (page === 1) {
+                    // Check if query looks like a person's name (contains space and multiple words)
+                    const isLikelyPersonName = query.trim().includes(' ') && query.trim().split(' ').length >= 2;
+                    
                     // For first page, try both movie search and actor search
                     const [movieData, actorMovies] = await Promise.all([
                         makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=1`),
                         searchActorMovies(query)
                     ]);
                     
-                    // Combine results, prioritizing direct movie matches
-                    if (movieData.results && movieData.results.length > 0) {
-                        const sortedMovies = movieData.results.sort((a, b) => b.popularity - a.popularity);
-                        allResults = [...sortedMovies];
-                        resultHeader = `Movies matching "${query}"`;
-                    }
-                    
-                    // Add actor movies if found and not too many direct matches
-                    if (actorMovies && actorMovies.results.length > 0) {
-                        if (allResults.length === 0) {
-                            allResults = actorMovies.results;
-                            resultHeader = `Movies starring ${actorMovies.actorName}`;
-                        } else if (allResults.length < 10) {
-                            const additionalMovies = actorMovies.results
-                                .filter(actorMovie => !allResults.some(movie => movie.id === actorMovie.id))
-                                .slice(0, 5);
-                            allResults = [...allResults, ...additionalMovies];
-                            resultHeader = `Movies for "${query}" and starring ${actorMovies.actorName}`;
+                    // Prioritize actor results if query looks like a person name and we found actor matches
+                    if (isLikelyPersonName && actorMovies && actorMovies.results.length > 0) {
+                        allResults = actorMovies.results;
+                        resultHeader = `Movies starring ${actorMovies.actorName}`;
+                        
+                        // Add non-duplicate movie results if space allows
+                        if (movieData.results && movieData.results.length > 0) {
+                            const additionalMovies = movieData.results
+                                .filter(movie => !allResults.some(actorMovie => actorMovie.id === movie.id))
+                                .slice(0, 10);
+                            if (additionalMovies.length > 0) {
+                                allResults = [...allResults, ...additionalMovies];
+                                resultHeader = `Movies starring ${actorMovies.actorName} and matching "${query}"`;
+                            }
+                        }
+                    } else {
+                        // Original logic for non-person searches
+                        if (movieData.results && movieData.results.length > 0) {
+                            const sortedMovies = movieData.results.sort((a, b) => b.popularity - a.popularity);
+                            allResults = [...sortedMovies];
+                            resultHeader = `Movies matching "${query}"`;
+                        }
+                        
+                        // Add actor movies if found and not too many direct matches
+                        if (actorMovies && actorMovies.results.length > 0) {
+                            if (allResults.length === 0) {
+                                allResults = actorMovies.results;
+                                resultHeader = `Movies starring ${actorMovies.actorName}`;
+                            } else if (allResults.length < 10) {
+                                const additionalMovies = actorMovies.results
+                                    .filter(actorMovie => !allResults.some(movie => movie.id === actorMovie.id))
+                                    .slice(0, 5);
+                                allResults = [...allResults, ...additionalMovies];
+                                resultHeader = `Movies for "${query}" and starring ${actorMovies.actorName}`;
+                            }
                         }
                     }
                 } else {
@@ -989,30 +1009,50 @@
                 const resultsLimit = getResultsLimit();
                 
                 if (page === 1) {
+                    // Check if query looks like a person's name (contains space and multiple words)
+                    const isLikelyPersonName = query.trim().includes(' ') && query.trim().split(' ').length >= 2;
+                    
                     // For first page, try both TV search and actor search
                     const [tvData, actorShows] = await Promise.all([
                         makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=1`),
                         searchActorTvShows(query)
                     ]);
                     
-                    // Combine results, prioritizing direct TV show matches
-                    if (tvData.results && tvData.results.length > 0) {
-                        const sortedShows = tvData.results.sort((a, b) => b.popularity - a.popularity);
-                        allResults = [...sortedShows];
-                        resultHeader = `TV shows matching "${query}"`;
-                    }
-                    
-                    // Add actor shows if found and not too many direct matches
-                    if (actorShows && actorShows.results.length > 0) {
-                        if (allResults.length === 0) {
-                            allResults = actorShows.results;
-                            resultHeader = `TV shows starring ${actorShows.actorName}`;
-                        } else if (allResults.length < 10) {
-                            const additionalShows = actorShows.results
-                                .filter(actorShow => !allResults.some(show => show.id === actorShow.id))
-                                .slice(0, 5);
-                            allResults = [...allResults, ...additionalShows];
-                            resultHeader = `TV shows for "${query}" and starring ${actorShows.actorName}`;
+                    // Prioritize actor results if query looks like a person name and we found actor matches
+                    if (isLikelyPersonName && actorShows && actorShows.results.length > 0) {
+                        allResults = actorShows.results;
+                        resultHeader = `TV shows starring ${actorShows.actorName}`;
+                        
+                        // Add non-duplicate TV show results if space allows
+                        if (tvData.results && tvData.results.length > 0) {
+                            const additionalShows = tvData.results
+                                .filter(show => !allResults.some(actorShow => actorShow.id === show.id))
+                                .slice(0, 10);
+                            if (additionalShows.length > 0) {
+                                allResults = [...allResults, ...additionalShows];
+                                resultHeader = `TV shows starring ${actorShows.actorName} and matching "${query}"`;
+                            }
+                        }
+                    } else {
+                        // Original logic for non-person searches
+                        if (tvData.results && tvData.results.length > 0) {
+                            const sortedShows = tvData.results.sort((a, b) => b.popularity - a.popularity);
+                            allResults = [...sortedShows];
+                            resultHeader = `TV shows matching "${query}"`;
+                        }
+                        
+                        // Add actor shows if found and not too many direct matches
+                        if (actorShows && actorShows.results.length > 0) {
+                            if (allResults.length === 0) {
+                                allResults = actorShows.results;
+                                resultHeader = `TV shows starring ${actorShows.actorName}`;
+                            } else if (allResults.length < 10) {
+                                const additionalShows = actorShows.results
+                                    .filter(actorShow => !allResults.some(show => show.id === actorShow.id))
+                                    .slice(0, 5);
+                                allResults = [...allResults, ...additionalShows];
+                                resultHeader = `TV shows for "${query}" and starring ${actorShows.actorName}`;
+                            }
                         }
                     }
                 } else {

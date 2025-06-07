@@ -1,0 +1,98 @@
+(index):64 cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+(anonymous) @ (index):64
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+192.168.1.20:7878/api/v3/movie?apikey=ac1e729c49c84c3096f30eea6791707f:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)
+hook.js:608 API request failed: Error: HTTP 400: Bad Request
+    at makeApiRequest (replit.html:337:41)
+    at async window.addToRadarr (replit.html:636:17)
+overrideMethod @ hook.js:608
+hook.js:608 Failed to add to Radarr: Error: HTTP 400: Bad Request
+    at makeApiRequest (replit.html:337:41)
+    at async window.addToRadarr (replit.html:636:17)
+overrideMethod @ hook.js:608
+:8080/favicon.ico:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)

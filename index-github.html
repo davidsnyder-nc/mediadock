@@ -1604,6 +1604,35 @@
             }
         };
 
+        // TV trailer function that searches by series title and year
+        window.watchTvTrailerBySeries = async (seriesTitle, year) => {
+            if (!userSettings.tmdbApi) {
+                showNotification('Please set your TMDB API key in settings', 'error');
+                return;
+            }
+
+            try {
+                // Search for TV show by title and year
+                let searchQuery = encodeURIComponent(seriesTitle);
+                if (year) {
+                    searchQuery += `&first_air_date_year=${year}`;
+                }
+                
+                const searchData = await makeApiRequest(
+                    `https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${searchQuery}`
+                );
+                
+                const tvShow = searchData.results?.[0];
+                if (tvShow) {
+                    await watchTrailer(tvShow.id, 'tv');
+                } else {
+                    showNotification('No trailer available', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to find trailer', 'error');
+            }
+        };
+
         // --- Sonarr Recent TV Shows Function ---
         const loadSonarrRecent = async (page = 1) => {
             const sonarrRecentContainer = document.getElementById('sonarr-recent');
@@ -1653,9 +1682,10 @@
                     
                     console.log(`Found ${sortedSeries.length} unique series with recent downloads`);
                     
-                    // Calculate pagination
-                    const startIndex = (page - 1) * 12;
-                    const endIndex = startIndex + 12;
+                    // Calculate pagination - show 20 items per page for better user experience
+                    const itemsPerPage = 20;
+                    const startIndex = (page - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
                     const paginatedSeries = sortedSeries.slice(startIndex, endIndex);
                     const hasMoreSeries = endIndex < sortedSeries.length;
                     
@@ -1685,7 +1715,7 @@
                                                 ${series.overview || 'No description available'}
                                             </div>
                                             <div class="flex flex-col space-y-2 w-full">
-                                                <button onclick="event.stopPropagation(); watchTrailer('${series.tvdbId}', 'tv')" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
+                                                <button onclick="event.stopPropagation(); watchTvTrailerBySeries('${series.title}', '${series.year || ''}')" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
                                                     <i data-lucide="play" class="w-3 h-3"></i>
                                                     <span>Trailer</span>
                                                 </button>
@@ -1721,27 +1751,15 @@
                         const loadMoreButton = existingGrid.querySelector('.col-span-full');
                         if (loadMoreButton) loadMoreButton.remove();
                         
-                        // Create temporary container to parse new HTML
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = seriesHtml;
-                        
-                        // Append each new series card to the grid
-                        const newCards = tempDiv.children;
-                        for (let card of newCards) {
-                            existingGrid.appendChild(card);
-                        }
-                        
-                        // Add load more button if needed
-                        if (hasMoreSeries) {
-                            const loadMoreDiv = document.createElement('div');
-                            loadMoreDiv.className = 'col-span-full flex justify-center mt-6';
-                            loadMoreDiv.innerHTML = `
+                        // Directly append new HTML to the grid
+                        const currentHTML = existingGrid.innerHTML;
+                        existingGrid.innerHTML = currentHTML + seriesHtml + (hasMoreSeries ? `
+                            <div class="col-span-full flex justify-center mt-6">
                                 <button onclick="loadMoreRecentTvShows()" class="btn-primary px-6 py-2 rounded-lg">
                                     Load More TV Shows
                                 </button>
-                            `;
-                            existingGrid.appendChild(loadMoreDiv);
-                        }
+                            </div>
+                        ` : '');
                     }
 
                     // Generate witty descriptions for TV shows if enabled

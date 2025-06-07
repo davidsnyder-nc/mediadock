@@ -1603,24 +1603,16 @@
                         </div>
                     ` : '';
 
-                    if (page === 1) {
-                        radarrRecentContainer.innerHTML = `
-                            <div class="text-center mb-4">
-                                <h3 class="text-lg font-semibold text-gray-300">Recently Added Movies</h3>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                ${moviesHtml}
-                                ${loadMoreHtml}
-                            </div>
-                        `;
-                    } else {
-                        const existingGrid = radarrRecentContainer.querySelector('.grid');
-                        const loadMoreButton = existingGrid.querySelector('.col-span-full');
-                        if (loadMoreButton) {
-                            loadMoreButton.remove();
-                        }
-                        existingGrid.insertAdjacentHTML('beforeend', moviesHtml + loadMoreHtml);
-                    }
+                    // Always refresh the entire list instead of appending
+                    radarrRecentContainer.innerHTML = `
+                        <div class="text-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-300">Recently Added Movies (Page ${page})</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${moviesHtml}
+                            ${loadMoreHtml}
+                        </div>
+                    `;
 
                     // Generate witty descriptions for all recent movies
                     paginatedMovies.forEach(async (movie) => {
@@ -1646,6 +1638,14 @@
         // Generate witty descriptions using Gemini
         const generateWittyDescription = async (movieTitle, movieId) => {
             try {
+                if (!userSettings.geminiApi || userSettings.geminiApi === 'your-gemini-api-key-here') {
+                    const descElement = document.getElementById(`movie-desc-${movieId}`);
+                    if (descElement) {
+                        descElement.innerHTML = 'Witty description unavailable - Gemini API key needed';
+                    }
+                    return;
+                }
+
                 const prompt = `Create a witty, clever 15-word movie description for "${movieTitle}". Be sarcastic, funny, and memorable. No generic language.`;
                 
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${userSettings.geminiApi}`, {
@@ -1665,9 +1665,19 @@
                             descElement.innerHTML = wittyDesc;
                         }
                     }
+                } else {
+                    console.log('Gemini API response error:', response.status);
+                    const descElement = document.getElementById(`movie-desc-${movieId}`);
+                    if (descElement) {
+                        descElement.innerHTML = 'Witty description failed to load';
+                    }
                 }
             } catch (error) {
                 console.log('Witty description generation failed:', error);
+                const descElement = document.getElementById(`movie-desc-${movieId}`);
+                if (descElement) {
+                    descElement.innerHTML = 'Description unavailable';
+                }
             }
         };
 

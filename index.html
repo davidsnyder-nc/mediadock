@@ -452,10 +452,10 @@
         </div>
         
         <!-- Trailer Modal -->
-        <div id="trailer-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-             <div id="trailer-modal-content" class="bg-gray-900 rounded-lg w-full max-w-2xl aspect-video relative">
-                <button id="close-trailer-btn" class="absolute -top-2 -right-2 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center z-10"><i data-lucide="x"></i></button>
-                <div id="trailer-container" class="w-full h-full"></div>
+        <div id="trailer-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-2 md:p-4 z-50">
+             <div id="trailer-modal-content" class="bg-gray-900 rounded-lg w-full max-w-4xl aspect-video relative">
+                <button id="close-trailer-btn" class="absolute -top-2 -right-2 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center z-10 hover:bg-red-700 transition-colors"><i data-lucide="x"></i></button>
+                <div id="trailer-container" class="w-full h-full rounded-lg overflow-hidden"></div>
             </div>
         </div>
     </div>
@@ -1335,15 +1335,36 @@
                 );
 
                 if (trailer) {
+                    const iframeId = `trailer-iframe-${Date.now()}`;
                     trailerContainer.innerHTML = `
                         <iframe 
-                            src="https://www.youtube.com/embed/${trailer.key}?autoplay=1" 
+                            id="${iframeId}"
+                            src="https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1&showinfo=0&rel=0&modestbranding=1" 
                             class="w-full h-full rounded-lg" 
                             frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowfullscreen>
                         </iframe>
                     `;
                     trailerModal.classList.remove('hidden');
+                    
+                    // Auto-fullscreen on mobile
+                    if (isMobile()) {
+                        setTimeout(() => {
+                            const iframe = document.getElementById(iframeId);
+                            if (iframe && iframe.requestFullscreen) {
+                                iframe.requestFullscreen().catch(err => {
+                                    console.log('Fullscreen request failed:', err);
+                                });
+                            } else if (iframe && iframe.webkitRequestFullscreen) {
+                                iframe.webkitRequestFullscreen();
+                            } else if (iframe && iframe.mozRequestFullScreen) {
+                                iframe.mozRequestFullScreen();
+                            } else if (iframe && iframe.msRequestFullscreen) {
+                                iframe.msRequestFullscreen();
+                            }
+                        }, 500); // Small delay to ensure iframe is loaded
+                    }
                 } else {
                     showNotification('No trailer available', 'error');
                 }

@@ -749,16 +749,20 @@
                 const today = new Date();
                 const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
                 
-                const data = await makeApiRequest(
-                    `${userSettings.sonarrUrl}/api/v3/calendar?start=${today.toISOString().split('T')[0]}&end=${nextWeek.toISOString().split('T')[0]}&apikey=${userSettings.sonarrApi}`
-                );
+                const [calendarData, seriesData] = await Promise.all([
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/calendar?start=${today.toISOString().split('T')[0]}&end=${nextWeek.toISOString().split('T')[0]}&apikey=${userSettings.sonarrApi}`),
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`)
+                ]);
 
-                console.log('Sonarr calendar data:', data[0]); // Debug the structure
+                if (calendarData && calendarData.length > 0) {
+                    // Create a map of series ID to series title for quick lookup
+                    const seriesMap = {};
+                    seriesData.forEach(series => {
+                        seriesMap[series.id] = series.title;
+                    });
 
-                if (data && data.length > 0) {
-                    const calendarHtml = data.map(episode => {
-                        // Try different possible property names for series title
-                        const seriesTitle = episode.series?.title || episode.seriesTitle || episode.series?.name || 'Unknown Series';
+                    const calendarHtml = calendarData.map(episode => {
+                        const seriesTitle = seriesMap[episode.seriesId] || 'Unknown Series';
                         
                         return `
                         <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">

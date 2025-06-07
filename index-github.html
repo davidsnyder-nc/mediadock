@@ -1515,10 +1515,16 @@
                     radarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 }
 
-                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}&sortKey=added&sortDirection=descending&pageSize=12&page=${page}`);
+                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}&sortKey=added&sortDirection=descending`);
                 
                 if (response && response.length > 0) {
-                    const moviesHtml = response.map(movie => {
+                    // Calculate pagination
+                    const startIndex = (page - 1) * 12;
+                    const endIndex = startIndex + 12;
+                    const paginatedMovies = response.slice(startIndex, endIndex);
+                    const hasMoreMovies = endIndex < response.length;
+
+                    const moviesHtml = paginatedMovies.map(movie => {
                         const posterUrl = movie.images?.find(img => img.coverType === 'poster')?.remoteUrl || 'https://via.placeholder.com/300x450?text=No+Image';
                         const year = movie.year || 'Unknown';
                         const status = movie.hasFile ? 'Downloaded' : 'Missing';
@@ -1529,7 +1535,7 @@
                                 <div class="card">
                                     <div class="card-front">
                                         <img src="${posterUrl}" alt="${movie.title}" class="w-full h-full object-cover rounded-lg">
-                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-3">
                                             <h3 class="text-white text-sm font-semibold truncate">${movie.title}</h3>
                                             <p class="text-gray-300 text-xs">${year} • <span class="${statusColor}">${status}</span></p>
                                         </div>
@@ -1555,7 +1561,7 @@
                         `;
                     }).join('');
 
-                    const loadMoreHtml = response.length === 12 ? `
+                    const loadMoreHtml = hasMoreMovies ? `
                         <div class="col-span-full flex justify-center mt-6">
                             <button onclick="loadMoreRecentMovies()" class="btn-secondary px-6 py-2 rounded-lg">
                                 Load More Movies

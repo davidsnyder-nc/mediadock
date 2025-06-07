@@ -379,8 +379,11 @@
                             </select>
                         </div>
                         <button id="save-settings" class="w-full action-btn text-white font-bold py-2 px-4 rounded-lg">
-                            Save Settings
+                            Copy Config to Clipboard
                         </button>
+                        <p class="text-gray-400 text-xs mt-2 text-center">
+                            After copying, paste the configuration into your config.json file and refresh the page.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -508,7 +511,7 @@
             }
         };
 
-        const saveSettings = async () => {
+        const copyConfigToClipboard = () => {
             const settings = {
                 sonarrUrl: document.getElementById('sonarr-url').value,
                 sonarrApi: document.getElementById('sonarr-api').value,
@@ -521,24 +524,12 @@
                 defaultPage: document.getElementById('default-page').value
             };
             
-            try {
-                const response = await fetch('/save-config', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(settings)
-                });
-                
-                if (response.ok) {
-                    userSettings = settings;
-                    showNotification('Settings saved to config.json successfully!', 'success');
-                } else {
-                    showNotification('Failed to save settings to config file', 'error');
-                }
-            } catch (error) {
-                showNotification('Error saving settings to config file', 'error');
-            }
+            const configJson = JSON.stringify(settings, null, 2);
+            navigator.clipboard.writeText(configJson).then(() => {
+                showNotification('Configuration copied to clipboard! Paste it into config.json file.', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy to clipboard', 'error');
+            });
         };
 
         const loadSettings = async () => {
@@ -1158,7 +1149,7 @@
             });
         });
 
-        saveSettingsBtn.addEventListener('click', saveSettings);
+        saveSettingsBtn.addEventListener('click', copyConfigToClipboard);
 
         movieSearchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);

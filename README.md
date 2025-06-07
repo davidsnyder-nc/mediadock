@@ -39,30 +39,50 @@ git clone https://github.com/yourusername/mediadock.git
 cd mediadock
 ```
 
-2. Start the development server:
+2. Create your configuration file:
+```bash
+cp config.example.json config.json
+```
+
+3. Edit `config.json` with your API keys and server details:
+```json
+{
+  "sonarrUrl": "http://your-server-ip:8989",
+  "sonarrApi": "your-sonarr-api-key-here",
+  "radarrUrl": "http://your-server-ip:7878",
+  "radarrApi": "your-radarr-api-key-here",
+  "sabnzbdUrl": "http://your-server-ip:8080",
+  "sabnzbdApi": "your-sabnzbd-api-key-here",
+  "tmdbApi": "your-tmdb-api-key-here",
+  "geminiApi": "your-gemini-api-key-here",
+  "defaultPage": "tv-page"
+}
+```
+
+4. Start the development server:
 ```bash
 python -m http.server 5000
 ```
 
-3. Open your browser and navigate to `http://localhost:5000`
+5. Open your browser and navigate to `http://localhost:5000`
 
 ## Configuration
 
-Navigate to the Settings page and configure your API endpoints:
+MediaDock uses a `config.json` file to store your API keys and server settings. This approach keeps sensitive information out of the codebase and makes GitHub deployment safer.
 
 ### Required APIs
 
-1. **TMDB API Key**
+1. **TMDB API Key (Required)**
    - Sign up at [TheMovieDB](https://www.themoviedb.org/settings/api)
    - Generate a v3 API key
-   - Enter in the TMDB API Key field
+   - Add to `tmdbApi` field in config.json
 
-2. **Gemini AI API Key**
-   - Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-   - Enter in the Gemini API Key field
+2. **Gemini AI API Key (Optional)**
+   - Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Add to `geminiApi` field in config.json
 
-3. **Sonarr Configuration**
-   - Enter your Sonarr server URL (e.g., `http://localhost:8989`)
+3. **Media Server Configuration (Optional)**
+   - **Sonarr**: Enter server URL and API key from Settings > General > Security
    - Get API key from Sonarr Settings > General > API Key
 
 4. **Radarr Configuration**

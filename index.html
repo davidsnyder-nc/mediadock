@@ -257,8 +257,15 @@
             
             /* Adjust main content grid for desktop */
             #movie-results, #tv-results {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
                 gap: 1.5rem;
+            }
+            
+            /* Ensure TV results show in grid when search results are displayed */
+            #tv-results:not(.hidden) {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
             }
             
             /* Search inputs full width on desktop */

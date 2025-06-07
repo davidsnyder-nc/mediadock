@@ -300,13 +300,20 @@
             <div id="pages-container" class="h-full">
                 <!-- Movies Page -->
                 <div id="movies-page" class="page">
-                    <div class="mb-4 relative">
-                        <input id="movie-search" type="text" placeholder="Search for a movie..." class="w-full form-input text-white rounded-lg p-3 pr-10">
-                         <i data-lucide="search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <div class="flex justify-center mb-4 bg-gray-800 rounded-lg p-1">
+                        <button id="movie-recent-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md active">Recent</button>
+                        <button id="movie-search-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Search</button>
                     </div>
-                    <div class="overflow-y-auto no-scrollbar flex-grow">
+                    <div id="movie-search-container" class="hidden">
+                        <div class="mb-4 relative">
+                            <input id="movie-search" type="text" placeholder="Search for a movie..." class="w-full form-input text-white rounded-lg p-3 pr-10">
+                             <i data-lucide="search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div id="movie-content-area" class="overflow-y-auto no-scrollbar flex-grow">
                         <div id="movie-search-header" class="mb-4"></div>
-                        <div id="movie-results" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div id="radarr-recent" class="space-y-4"></div>
+                        <div id="movie-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
                             <!-- Default content when no search results -->
                             <div id="movie-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
                                 <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -470,6 +477,7 @@
         let tvPage = 1;
         let isMovieActorSearch = false;
         let isTvActorSearch = false;
+        let recentMoviePage = 1;
         
         // Configuration - Edit these values with your API keys and server details
         let userSettings = {
@@ -720,6 +728,9 @@
                     // First time loading TV page, default to calendar
                     toggleTvView('calendar');
                 }
+            } else if (pageId === 'movies-page') {
+                // Load recent movies by default when movies page is shown
+                toggleMovieView('recent');
             } else if (pageId === 'downloads-page') {
                 loadSabnzbdHistory();
             } else if (pageId === 'settings-page') {
@@ -1490,6 +1501,158 @@
             }
         };
 
+        // --- Radarr Recent Movies Function ---
+        const loadRadarrRecent = async (page = 1) => {
+            const radarrRecentContainer = document.getElementById('radarr-recent');
+            
+            if (!userSettings.radarrUrl || !userSettings.radarrApi) {
+                radarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please configure Radarr settings</p>';
+                return;
+            }
+
+            try {
+                if (page === 1) {
+                    radarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
+                }
+
+                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}&sortKey=added&sortDirection=descending&pageSize=12&page=${page}`);
+                
+                if (response && response.length > 0) {
+                    const moviesHtml = response.map(movie => {
+                        const posterUrl = movie.images?.find(img => img.coverType === 'poster')?.remoteUrl || 'https://via.placeholder.com/300x450?text=No+Image';
+                        const year = movie.year || 'Unknown';
+                        const status = movie.hasFile ? 'Downloaded' : 'Missing';
+                        const statusColor = movie.hasFile ? 'text-green-400' : 'text-yellow-400';
+                        
+                        return `
+                            <div class="card-container w-full" onclick="flipCard(this, ${movie.id})">
+                                <div class="card">
+                                    <div class="card-front">
+                                        <img src="${posterUrl}" alt="${movie.title}" class="w-full h-full object-cover rounded-lg">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3">
+                                            <h3 class="text-white text-sm font-semibold truncate">${movie.title}</h3>
+                                            <p class="text-gray-300 text-xs">${year} • <span class="${statusColor}">${status}</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="card-back" style="background-image: url('${posterUrl}');">
+                                        <div class="card-back-overlay">
+                                            <h3 class="text-white text-lg font-bold text-center mb-2">${movie.title}</h3>
+                                            <p class="text-gray-200 text-sm text-center mb-4 line-clamp-4">${movie.overview || 'No description available'}</p>
+                                            <div class="flex flex-col space-y-2 w-full">
+                                                <button onclick="event.stopPropagation(); playTrailer('${movie.title}', ${movie.tmdbId})" class="btn-primary text-xs py-2 px-3 rounded flex items-center justify-center space-x-1">
+                                                    <i data-lucide="play" class="w-3 h-3"></i>
+                                                    <span>Trailer</span>
+                                                </button>
+                                                <div class="text-center text-xs text-gray-300">
+                                                    <span>${year}</span>
+                                                    ${movie.ratings?.imdb ? `<span class="ml-2">★ ${movie.ratings.imdb.value.toFixed(1)}</span>` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const loadMoreHtml = response.length === 12 ? `
+                        <div class="col-span-full flex justify-center mt-6">
+                            <button onclick="loadMoreRecentMovies()" class="btn-secondary px-6 py-2 rounded-lg">
+                                Load More Movies
+                            </button>
+                        </div>
+                    ` : '';
+
+                    if (page === 1) {
+                        radarrRecentContainer.innerHTML = `
+                            <div class="text-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-300">Recently Added Movies</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                ${moviesHtml}
+                                ${loadMoreHtml}
+                            </div>
+                        `;
+                    } else {
+                        const existingGrid = radarrRecentContainer.querySelector('.grid');
+                        const loadMoreButton = existingGrid.querySelector('.col-span-full');
+                        if (loadMoreButton) {
+                            loadMoreButton.remove();
+                        }
+                        existingGrid.insertAdjacentHTML('beforeend', moviesHtml + loadMoreHtml);
+                    }
+
+                    lucide.createIcons();
+                } else {
+                    radarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No movies found in Radarr</p>';
+                }
+            } catch (error) {
+                console.error('Error loading Radarr recent movies:', error);
+                radarrRecentContainer.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load recent movies</p>';
+            }
+        };
+
+        // Load more recent movies function
+        window.loadMoreRecentMovies = () => {
+            recentMoviePage++;
+            loadRadarrRecent(recentMoviePage);
+        };
+
+        // --- Movie Toggle Function ---
+        const toggleMovieView = (view) => {
+            const recentBtn = document.getElementById('movie-recent-btn');
+            const searchBtn = document.getElementById('movie-search-btn');
+            const searchContainer = document.getElementById('movie-search-container');
+            const recentContainer = document.getElementById('radarr-recent');
+            const resultsContainer = document.getElementById('movie-results');
+            const movieSearchHeader = document.getElementById('movie-search-header');
+
+            if (view === 'recent') {
+                recentBtn?.classList.add('active');
+                searchBtn?.classList.remove('active');
+                searchContainer?.classList.add('hidden');
+                recentContainer?.classList.remove('hidden');
+                resultsContainer?.classList.add('hidden');
+                resultsContainer?.classList.remove('grid');
+                
+                // Clear search results and headers
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = resultsContainer.innerHTML.includes('movie-default-content') ? resultsContainer.innerHTML : '';
+                }
+                movieSearchHeader.innerHTML = '';
+                
+                // Clear search input
+                const searchInput = document.getElementById('movie-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                
+                // Reset search state
+                currentMovieQuery = '';
+                moviePage = 1;
+                
+                loadRadarrRecent();
+            } else {
+                searchBtn?.classList.add('active');
+                recentBtn?.classList.remove('active');
+                searchContainer?.classList.remove('hidden');
+                recentContainer?.classList.add('hidden');
+                resultsContainer?.classList.remove('hidden');
+                
+                // Clear any existing recent content
+                if (recentContainer) {
+                    recentContainer.innerHTML = '';
+                }
+                
+                // Show default content when switching to search tab with empty search
+                const searchInput = document.getElementById('movie-search');
+                const defaultContent = document.getElementById('movie-default-content');
+                if (defaultContent && (!searchInput || !searchInput.value.trim())) {
+                    defaultContent.style.display = 'block';
+                }
+            }
+        };
+
         // --- Event Listeners ---
         navButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -1563,6 +1726,10 @@
 
         tvCalendarBtn.addEventListener('click', () => toggleTvView('calendar'));
         tvSearchBtn.addEventListener('click', () => toggleTvView('search'));
+
+        // Movie toggle buttons
+        document.getElementById('movie-recent-btn').addEventListener('click', () => toggleMovieView('recent'));
+        document.getElementById('movie-search-btn').addEventListener('click', () => toggleMovieView('search'));
 
         closeTrailerBtn.addEventListener('click', () => {
             trailerModal.classList.add('hidden');

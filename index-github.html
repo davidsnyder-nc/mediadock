@@ -923,9 +923,14 @@
                 if (allResults.length > resultsLimit) {
                     hasMoreResults = true;
                     allResults = allResults.slice(0, resultsLimit);
-                } else if (page === 1 && allResults.length === resultsLimit) {
-                    // Check if there might be more on next page
+                } else if (page === 1 && allResults.length === resultsLimit && !isMovieActorSearch) {
+                    // Check if there might be more on next page (but not for actor searches)
                     hasMoreResults = true;
+                }
+                
+                // Never show "Load More" for actor searches since we already have all results
+                if (isMovieActorSearch) {
+                    hasMoreResults = false;
                 }
                 
                 if (allResults.length > 0) {
@@ -1096,9 +1101,14 @@
                 if (allResults.length > resultsLimit) {
                     hasMoreResults = true;
                     allResults = allResults.slice(0, resultsLimit);
-                } else if (page === 1 && allResults.length === resultsLimit) {
-                    // Check if there might be more on next page
+                } else if (page === 1 && allResults.length === resultsLimit && !isTvActorSearch) {
+                    // Check if there might be more on next page (but not for actor searches)
                     hasMoreResults = true;
+                }
+                
+                // Never show "Load More" for actor searches since we already have all results
+                if (isTvActorSearch) {
+                    hasMoreResults = false;
                 }
                 
                 if (allResults.length > 0) {

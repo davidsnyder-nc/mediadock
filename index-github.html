@@ -468,6 +468,8 @@
         let currentTvQuery = '';
         let moviePage = 1;
         let tvPage = 1;
+        let isMovieActorSearch = false;
+        let isTvActorSearch = false;
         
         // Configuration - Edit these values with your API keys and server details
         let userSettings = {
@@ -833,6 +835,11 @@
             currentMovieQuery = query;
             moviePage = page;
             
+            // Reset actor search flag
+            if (page === 1) {
+                isMovieActorSearch = false;
+            }
+            
             if (!userSettings.tmdbApi) {
                 if (defaultContent) defaultContent.style.display = 'none';
                 movieResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
@@ -862,6 +869,7 @@
                     if (isLikelyPersonName && actorMovies && actorMovies.results.length > 0) {
                         allResults = actorMovies.results;
                         resultHeader = `Movies starring ${actorMovies.actorName}`;
+                        isMovieActorSearch = true; // Flag this as an actor search
                         
                         // Add non-duplicate movie results if space allows
                         if (movieData.results && movieData.results.length > 0) {
@@ -896,11 +904,18 @@
                         }
                     }
                 } else {
-                    // For subsequent pages, only search movies
-                    const movieData = await makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=${page}`);
-                    if (movieData.results && movieData.results.length > 0) {
-                        allResults = movieData.results.sort((a, b) => b.popularity - a.popularity);
-                        resultHeader = `Movies matching "${query}" (Page ${page})`;
+                    // For subsequent pages, check if this was an actor search
+                    if (isMovieActorSearch) {
+                        // Don't allow pagination for actor searches since we already show all 50 results
+                        allResults = [];
+                        resultHeader = '';
+                    } else {
+                        // For subsequent pages, only search movies
+                        const movieData = await makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=${page}`);
+                        if (movieData.results && movieData.results.length > 0) {
+                            allResults = movieData.results.sort((a, b) => b.popularity - a.popularity);
+                            resultHeader = `Movies matching "${query}" (Page ${page})`;
+                        }
                     }
                 }
                 
@@ -993,6 +1008,11 @@
             currentTvQuery = query;
             tvPage = page;
             
+            // Reset actor search flag
+            if (page === 1) {
+                isTvActorSearch = false;
+            }
+            
             if (!userSettings.tmdbApi) {
                 if (defaultContent) defaultContent.style.display = 'none';
                 tvResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
@@ -1022,6 +1042,7 @@
                     if (isLikelyPersonName && actorShows && actorShows.results.length > 0) {
                         allResults = actorShows.results;
                         resultHeader = `TV shows starring ${actorShows.actorName}`;
+                        isTvActorSearch = true; // Flag this as an actor search
                         
                         // Add non-duplicate TV show results if space allows
                         if (tvData.results && tvData.results.length > 0) {
@@ -1056,11 +1077,18 @@
                         }
                     }
                 } else {
-                    // For subsequent pages, only search TV shows
-                    const tvData = await makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=${page}`);
-                    if (tvData.results && tvData.results.length > 0) {
-                        allResults = tvData.results.sort((a, b) => b.popularity - a.popularity);
-                        resultHeader = `TV shows matching "${query}" (Page ${page})`;
+                    // For subsequent pages, check if this was an actor search
+                    if (isTvActorSearch) {
+                        // Don't allow pagination for actor searches since we already show all 50 results
+                        allResults = [];
+                        resultHeader = '';
+                    } else {
+                        // For subsequent pages, only search TV shows
+                        const tvData = await makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=${page}`);
+                        if (tvData.results && tvData.results.length > 0) {
+                            allResults = tvData.results.sort((a, b) => b.popularity - a.popularity);
+                            resultHeader = `TV shows matching "${query}" (Page ${page})`;
+                        }
                     }
                 }
                 

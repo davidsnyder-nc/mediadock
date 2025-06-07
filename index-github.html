@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaDock - Media Hub Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        .form-input { background: rgba(55, 65, 81, 0.8); border: 1px solid rgba(75, 85, 99, 0.5); }
+        .form-input:focus { border-color: rgb(34, 197, 94); box-shadow: 0 0 0 1px rgb(34, 197, 94); }
+        .action-btn { background: linear-gradient(45deg, #10b981, #34d399); }
+        .action-btn:hover { background: linear-gradient(45deg, #059669, #10b981); }
+        .card-container { perspective: 1000px; }
+        .card { position: relative; width: 100%; height: 300px; transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        .card.flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; overflow: hidden; }
+        .card-face-back { transform: rotateY(180deg); }
+        .card-image-container { background-size: cover; background-position: center; border-radius: 8px; }
+        .card-back-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: blur(8px) brightness(0.3); }
+        .card-back-overlay { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 1rem; }
+        .spinner { border-top-color: #10b981; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .page { display: none; height: 100%; }
+        .page.active { display: flex; flex-direction: column; }
+        .nav-button { transition: all 0.3s ease; }
+        .nav-button.active { background: rgba(34, 197, 94, 0.2); color: rgb(34, 197, 94); }
+        .nav-button.active i { color: rgb(34, 197, 94); }
+        .toggle-btn { transition: all 0.3s ease; color: #9ca3af; }
+        .toggle-btn.active { background: rgba(34, 197, 94, 0.2); color: rgb(34, 197, 94); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Desktop Sidebar Styles */
+        .desktop-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border-right: 1px solid rgba(75, 85, 99, 0.3);
+            z-index: 50;
+            flex-direction: column;
+        }
+        
+        .desktop-nav {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+        }
+        
+        .desktop-nav h2 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .desktop-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .desktop-nav-item:hover {
+            background: rgba(55, 65, 81, 0.6);
+            color: #d1d5db;
+        }
+        
+        .desktop-nav-item.active {
+            background: rgba(34, 197, 94, 0.1);
+            color: #10b981;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+        
+        .desktop-nav-item i {
+            margin-right: 0.75rem;
+            width: 20px;
+        }
+        
+        .desktop-info {
+            padding: 1.5rem;
+            flex: 1;
+        }
+        
+        .desktop-info h3 {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+        }
+        
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+        
+        .stat-value {
+            color: #d1d5db;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        /* Adjust main content when sidebar is visible */
+        @media (min-width: 768px) {
+            main {
+                margin-left: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-100">
+    <div class="flex flex-col h-screen overflow-hidden">
+        <!-- Notification Modal -->
+        <div id="notification-modal" class="fixed bottom-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-white shadow-lg opacity-0 transition-all duration-300 z-50">
+            <span id="notification-message"></span>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 pb-20 md:pb-4 overflow-hidden">
+            <div id="pages-container" class="h-full">
+                <!-- Movies Page -->
+                <div id="movies-page" class="page">
+                    <div class="mb-4 relative">
+                        <input id="movie-search" type="text" placeholder="Search for a movie..." class="w-full form-input text-white rounded-lg p-3 pr-10">
+                         <i data-lucide="search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <div class="overflow-y-auto no-scrollbar flex-grow">
+                        <div id="movie-results" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Default content when no search results -->
+                            <div id="movie-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
+                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19V5h14v14H5zm3-10h8v2H8V9zm0 3h8v2H8v-2zm0 3h5v2H8v-2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">Discover Movies</h3>
+                                    <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite movies above to explore details, watch trailers, and add them to your Radarr collection.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TV Shows Page -->
+                <div id="tv-page" class="page">
+                     <div class="flex justify-center mb-4 bg-gray-800 rounded-lg p-1">
+                        <button id="tv-calendar-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Calendar</button>
+                        <button id="tv-search-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Search</button>
+                    </div>
+                    <div id="tv-search-container" class="hidden">
+                         <div class="mb-4 relative">
+                            <input id="tv-search" type="text" placeholder="Search for a TV show..." class="w-full form-input text-white rounded-lg p-3 pr-10">
+                            <i data-lucide="search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div id="tv-content-area" class="overflow-y-auto no-scrollbar flex-grow">
+                        <div id="sonarr-calendar" class="space-y-1 hidden"></div>
+                        <div id="tv-results" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Default content when no search results -->
+                            <div id="tv-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
+                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12H3V5h18v10z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">Discover TV Shows</h3>
+                                    <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite TV series above to explore episodes, watch trailers, and add them to your Sonarr collection.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Downloads Page -->
+                <div id="downloads-page" class="page">
+                    <div class="space-y-4 overflow-y-auto no-scrollbar flex-grow">
+                        <h3 class="text-lg font-medium text-white mb-2">SABnzbd Download History</h3>
+                        <div id="sabnzbd-history" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- Settings Page -->
+                <div id="settings-page" class="page">
+                    <div class="space-y-4 overflow-y-auto no-scrollbar flex-grow">
+                        <h3 class="text-lg font-medium text-white mb-2">API Settings</h3>
+                        <div class="space-y-3">
+                            <input id="sonarr-url" type="text" placeholder="Sonarr URL (e.g., http://localhost:8989)" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sonarr-api" type="text" placeholder="Sonarr API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="radarr-url" type="text" placeholder="Radarr URL (e.g., http://localhost:7878)" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="radarr-api" type="text" placeholder="Radarr API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sabnzbd-url" type="text" placeholder="SABnzbd URL (e.g., http://localhost:8080)" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sabnzbd-api" type="text" placeholder="SABnzbd API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="tmdb-api" type="text" placeholder="TheMovieDB API Key (v3 Auth)" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="gemini-api" type="text" placeholder="Gemini API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <select id="default-page" class="w-full form-input text-white rounded-lg p-2">
+                                <option value="tv-page">TV Shows (Calendar) - Default</option>
+                                <option value="movies-page">Movies</option>
+                                <option value="downloads-page">Downloads</option>
+                                <option value="settings-page">Settings</option>
+                            </select>
+                        </div>
+                        <div class="bg-yellow-600/20 border border-yellow-600/50 rounded-lg p-4 mb-4">
+                            <div class="flex items-start">
+                                <i data-lucide="alert-triangle" class="text-yellow-400 mr-3 mt-0.5 flex-shrink-0"></i>
+                                <div>
+                                    <h4 class="text-yellow-400 font-medium mb-2">Configuration Required</h4>
+                                    <p class="text-yellow-200 text-sm mb-3">
+                                        This is the GitHub version with placeholder API keys. To use MediaDock:
+                                    </p>
+                                    <ol class="text-yellow-200 text-sm space-y-1 ml-4">
+                                        <li>1. Edit the userSettings object in the HTML file (around line 467)</li>
+                                        <li>2. Replace placeholder values with your actual API keys</li>
+                                        <li>3. Save the file and refresh the page</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="save-settings" class="w-full action-btn text-white font-bold py-2 px-4 rounded-lg">
+                            Copy Config to Clipboard
+                        </button>
+                        <p class="text-gray-400 text-xs mt-2 text-center">
+                            Copy the configuration and replace the userSettings object in your HTML file.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Desktop Sidebar (hidden on mobile) -->
+        <div class="desktop-sidebar hidden md:flex">
+            <div class="desktop-nav">
+                <h2>MediaDock</h2>
+                <div class="desktop-nav-item" data-page="movies-page">
+                    <i data-lucide="film"></i>
+                    <span>Movies</span>
+                </div>
+                <div class="desktop-nav-item" data-page="tv-page">
+                    <i data-lucide="tv"></i>
+                    <span>TV Shows</span>
+                </div>
+                <div class="desktop-nav-item" data-page="downloads-page">
+                    <i data-lucide="arrow-down-to-line"></i>
+                    <span>Downloads</span>
+                </div>
+                <div class="desktop-nav-item" data-page="settings-page">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+            
+            <div class="desktop-info">
+                <h3>Quick Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" id="connection-status">Configure APIs</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Default Page</span>
+                    <span class="stat-value" id="default-page-display">TV Shows</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Last Updated</span>
+                    <span class="stat-value" id="last-updated">Just now</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="flex justify-around bg-gray-800/50 backdrop-filter backdrop-blur-lg p-2 fixed bottom-0 left-0 right-0 border-t border-gray-700/50 z-10 md:hidden">
+            <button data-page="movies-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="film" class="mb-1"></i>
+                <span class="text-xs">Movies</span>
+            </button>
+            <button data-page="tv-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="tv" class="mb-1"></i>
+                <span class="text-xs">TV Shows</span>
+            </button>
+            <button data-page="downloads-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="arrow-down-to-line" class="mb-1"></i>
+                <span class="text-xs">Downloads</span>
+            </button>
+            <button data-page="settings-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="settings" class="mb-1"></i>
+                <span class="text-xs">Settings</span>
+            </button>
+        </nav>
+
+        <!-- Trailer Modal -->
+        <div id="trailer-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+             <div id="trailer-modal-content" class="bg-gray-900 rounded-lg w-full max-w-2xl aspect-video relative">
+                <button id="close-trailer-btn" class="absolute -top-2 -right-2 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center z-10"><i data-lucide="x"></i></button>
+                <div id="trailer-container" class="w-full h-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- App State & Config ---
+        let currentPage = 'movies-page';
+        let searchTimeout;
+        
+        // Configuration - Replace these placeholder values with your actual API keys and server details
+        let userSettings = {
+            sonarrUrl: "http://your-server-ip:8989",
+            sonarrApi: "your-sonarr-api-key-here",
+            radarrUrl: "http://your-server-ip:7878", 
+            radarrApi: "your-radarr-api-key-here",
+            sabnzbdUrl: "http://your-server-ip:8080",
+            sabnzbdApi: "your-sabnzbd-api-key-here",
+            tmdbApi: "your-tmdb-api-key-here",
+            geminiApi: "your-gemini-api-key-here",
+            defaultPage: "tv-page"
+        };
+
+        // --- UI Elements ---
+        const navButtons = document.querySelectorAll('.nav-button');
+        const pages = document.querySelectorAll('.page');
+        const saveSettingsBtn = document.getElementById('save-settings');
+        const movieSearchInput = document.getElementById('movie-search');
+        const tvSearchInput = document.getElementById('tv-search');
+        const movieResultsContainer = document.getElementById('movie-results');
+        const tvResultsContainer = document.getElementById('tv-results');
+        const sabnzbdHistoryContainer = document.getElementById('sabnzbd-history');
+        const sonarrCalendarContainer = document.getElementById('sonarr-calendar');
+        const notificationModal = document.getElementById('notification-modal');
+        const notificationMessage = document.getElementById('notification-message');
+        const trailerModal = document.getElementById('trailer-modal');
+        const closeTrailerBtn = document.getElementById('close-trailer-btn');
+        const trailerContainer = document.getElementById('trailer-container');
+        const tvCalendarBtn = document.getElementById('tv-calendar-btn');
+        const tvSearchBtn = document.getElementById('tv-search-btn');
+        const tvSearchContainer = document.getElementById('tv-search-container');
+        const tvContentArea = document.getElementById('tv-content-area');
+
+        // --- Helper Functions ---
+        const showNotification = (message, type = 'info') => {
+            notificationMessage.textContent = message;
+            notificationModal.className = `fixed bottom-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-white shadow-lg ${type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600'}`;
+            notificationModal.style.opacity = '1';
+            notificationModal.style.transform = 'translateX(-50%) translateY(0)';
+            setTimeout(() => {
+                notificationModal.style.opacity = '0';
+                notificationModal.style.transform = 'translateX(-50%) translateY(1rem)';
+            }, 3000);
+        };
+
+        const makeApiRequest = async (url, options = {}) => {
+            try {
+                const response = await fetch(url, { ...options });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`API Error ${response.status}:`, errorText);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        };
+
+        const copyConfigToClipboard = () => {
+            const settings = {
+                sonarrUrl: document.getElementById('sonarr-url').value,
+                sonarrApi: document.getElementById('sonarr-api').value,
+                radarrUrl: document.getElementById('radarr-url').value,
+                radarrApi: document.getElementById('radarr-api').value,
+                sabnzbdUrl: document.getElementById('sabnzbd-url').value,
+                sabnzbdApi: document.getElementById('sabnzbd-api').value,
+                tmdbApi: document.getElementById('tmdb-api').value,
+                geminiApi: document.getElementById('gemini-api').value,
+                defaultPage: document.getElementById('default-page').value
+            };
+            
+            const configCode = `let userSettings = ${JSON.stringify(settings, null, 4)};`;
+            navigator.clipboard.writeText(configCode).then(() => {
+                showNotification('Configuration copied! Replace userSettings object in your HTML file.', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy to clipboard', 'error');
+            });
+        };
+
+        const loadSettings = () => {
+            console.log('Using embedded configuration:', userSettings);
+            // Check if configuration has placeholder values
+            if (userSettings.tmdbApi === "your-tmdb-api-key-here") {
+                showNotification('Please configure your API keys in the userSettings object', 'error');
+            }
+        };
+
+        const populateSettingsFields = () => {
+            // Get all input elements
+            const inputs = {
+                'sonarr-url': userSettings.sonarrUrl,
+                'sonarr-api': userSettings.sonarrApi,
+                'radarr-url': userSettings.radarrUrl,
+                'radarr-api': userSettings.radarrApi,
+                'sabnzbd-url': userSettings.sabnzbdUrl,
+                'sabnzbd-api': userSettings.sabnzbdApi,
+                'tmdb-api': userSettings.tmdbApi,
+                'gemini-api': userSettings.geminiApi
+            };
+
+            // Set values for each input
+            Object.entries(inputs).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element && value) {
+                    element.value = value;
+                    if (!value.includes('your-') && !value.includes('localhost')) {
+                        element.removeAttribute('placeholder');
+                    }
+                }
+            });
+
+            // Handle dropdown
+            const defaultPageSelect = document.getElementById('default-page');
+            if (defaultPageSelect) {
+                defaultPageSelect.value = userSettings.defaultPage || 'tv-page';
+            }
+        };
+
+        // Show placeholder notification for GitHub version
+        showNotification('GitHub Demo Version - Configure API keys in the code to use', 'info');
+
+        // --- Navigation ---
+        const showPage = (pageId) => {
+            const wasAlreadyOnTvPage = currentPage === 'tv-page' && pageId === 'tv-page';
+            
+            pages.forEach(page => page.classList.remove('active'));
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.desktop-nav-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            const mobileBtn = document.querySelector(`nav [data-page="${pageId}"]`);
+            const desktopItem = document.querySelector(`.desktop-nav-item[data-page="${pageId}"]`);
+            
+            if (mobileBtn) mobileBtn.classList.add('active');
+            if (desktopItem) desktopItem.classList.add('active');
+            
+            currentPage = pageId;
+
+            if (pageId === 'tv-page') {
+                if (wasAlreadyOnTvPage) {
+                    toggleTvView('search');
+                } else {
+                    toggleTvView('calendar');
+                }
+            } else if (pageId === 'downloads-page') {
+                loadSabnzbdHistory();
+            } else if (pageId === 'settings-page') {
+                populateSettingsFields();
+            }
+        };
+
+        // --- Initialize App ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            showPage(userSettings.defaultPage || 'tv-page');
+            lucide.createIcons();
+        });
+
+        // --- Event Listeners ---
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const pageId = button.getAttribute('data-page');
+                showPage(pageId);
+            });
+        });
+
+        document.querySelectorAll('.desktop-nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const pageId = item.getAttribute('data-page');
+                showPage(pageId);
+            });
+        });
+
+        saveSettingsBtn.addEventListener('click', copyConfigToClipboard);
+
+        // Placeholder functions for GitHub version
+        function toggleTvView(view) {
+            const calendarContainer = sonarrCalendarContainer;
+            const resultsContainer = tvResultsContainer;
+            const searchContainer = tvSearchContainer;
+            
+            if (view === 'calendar') {
+                tvCalendarBtn?.classList.add('active');
+                tvSearchBtn?.classList.remove('active');
+                searchContainer?.classList.add('hidden');
+                calendarContainer?.classList.remove('hidden');
+                resultsContainer?.classList.add('hidden');
+                calendarContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Configure Sonarr API to view calendar</p>';
+            } else {
+                tvSearchBtn?.classList.add('active');
+                tvCalendarBtn?.classList.remove('active');
+                searchContainer?.classList.remove('hidden');
+                calendarContainer?.classList.add('hidden');
+                resultsContainer?.classList.remove('hidden');
+                resultsContainer?.classList.add('grid');
+                document.getElementById('tv-default-content')?.classList.remove('hidden');
+            }
+        }
+
+        function loadSabnzbdHistory() {
+            sabnzbdHistoryContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Configure SABnzbd API to view downloads</p>';
+        }
+
+        tvCalendarBtn?.addEventListener('click', () => toggleTvView('calendar'));
+        tvSearchBtn?.addEventListener('click', () => toggleTvView('search'));
+
+        movieSearchInput?.addEventListener('input', (e) => {
+            if (!userSettings.tmdbApi || userSettings.tmdbApi === "your-tmdb-api-key-here") {
+                showNotification('Please configure TMDB API key', 'error');
+                return;
+            }
+        });
+
+        tvSearchInput?.addEventListener('input', (e) => {
+            if (!userSettings.tmdbApi || userSettings.tmdbApi === "your-tmdb-api-key-here") {
+                showNotification('Please configure TMDB API key', 'error');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -330,7 +330,7 @@
                     </div>
                     <div id="tv-content-area" class="overflow-y-auto no-scrollbar flex-grow">
                         <div id="sonarr-calendar" class="space-y-1 hidden"></div>
-                        <div id="tv-results" class="hidden grid-cols-1 gap-4">
+                        <div id="tv-results" class="hidden grid grid-cols-1 gap-4">
                             <!-- Default content when no search results -->
                             <div id="tv-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
                                 <div class="mx-auto w-24 h-24 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
@@ -674,8 +674,8 @@
             currentPage = pageId;
 
             if (pageId === 'tv-page') {
+                // Don't auto-load calendar, let user choose
                 toggleTvView('calendar');
-                loadSonarrCalendar();
             } else if (pageId === 'downloads-page') {
                 loadSabnzbdHistory();
             } else if (pageId === 'settings-page') {
@@ -692,8 +692,7 @@
             const resultsContainer = tvResultsContainer;
             const defaultContent = document.getElementById('tv-default-content');
 
-            console.log('toggleTvView called with view:', view);
-            console.log('Elements found:', { calendarBtn, searchBtn, searchContainer, calendarContainer, resultsContainer });
+
 
             if (view === 'calendar') {
                 calendarBtn?.classList.add('active');
@@ -702,13 +701,18 @@
                 calendarContainer?.classList.remove('hidden');
                 resultsContainer?.classList.add('hidden');
                 resultsContainer?.classList.remove('grid');
+                loadSonarrCalendar();
             } else {
                 searchBtn?.classList.add('active');
                 calendarBtn?.classList.remove('active');
                 searchContainer?.classList.remove('hidden');
                 calendarContainer?.classList.add('hidden');
                 resultsContainer?.classList.remove('hidden');
-                resultsContainer?.classList.add('grid');
+                
+                // Clear any existing calendar content to prevent interference
+                if (calendarContainer) {
+                    calendarContainer.innerHTML = '';
+                }
                 
                 // Show default content when switching to search tab with empty search
                 const searchInput = document.getElementById('tv-search');

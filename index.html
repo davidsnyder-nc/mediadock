@@ -334,7 +334,11 @@
         const makeApiRequest = async (url, options = {}) => {
             try {
                 const response = await fetch(url, { ...options });
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`API Error ${response.status}:`, errorText);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 return await response.json();
             } catch (error) {
                 console.error('API request failed:', error);
@@ -713,6 +717,9 @@
                         searchForMissingEpisodes: true 
                     }
                 };
+
+                console.log('Sending Sonarr payload:', sonarrPayload);
+                console.log('TVDB ID found:', externalIds.tvdb_id);
 
                 await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`, {
                     method: 'POST',

@@ -681,8 +681,8 @@
             currentPage = pageId;
 
             if (pageId === 'tv-page') {
-                // Don't auto-load calendar, let user choose
-                toggleTvView('calendar');
+                // Default to search tab instead of calendar
+                toggleTvView('search');
             } else if (pageId === 'downloads-page') {
                 loadSabnzbdHistory();
             } else if (pageId === 'settings-page') {

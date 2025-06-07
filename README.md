@@ -39,36 +39,37 @@ git clone https://github.com/yourusername/mediadock.git
 cd mediadock
 ```
 
-2. Create your configuration file:
+2. Copy the GitHub template to create your working file:
 ```bash
-cp config.example.json config.json
+cp index-github.html index.html
 ```
 
-3. Edit `config.json` with your API keys and server details:
-```json
-{
-  "sonarrUrl": "http://your-server-ip:8989",
-  "sonarrApi": "your-sonarr-api-key-here",
-  "radarrUrl": "http://your-server-ip:7878",
-  "radarrApi": "your-radarr-api-key-here",
-  "sabnzbdUrl": "http://your-server-ip:8080",
-  "sabnzbdApi": "your-sabnzbd-api-key-here",
-  "tmdbApi": "your-tmdb-api-key-here",
-  "geminiApi": "your-gemini-api-key-here",
-  "defaultPage": "tv-page"
-}
+3. Edit the `userSettings` object in `index.html` (around line 467) with your API keys:
+```javascript
+let userSettings = {
+    sonarrUrl: "http://your-server-ip:8989",
+    sonarrApi: "your-sonarr-api-key-here",
+    radarrUrl: "http://your-server-ip:7878", 
+    radarrApi: "your-radarr-api-key-here",
+    sabnzbdUrl: "http://your-server-ip:8080",
+    sabnzbdApi: "your-sabnzbd-api-key-here",
+    tmdbApi: "your-tmdb-api-key-here",
+    geminiApi: "your-gemini-api-key-here",
+    defaultPage: "tv-page"
+};
 ```
 
-4. Start the development server:
+4. Start any basic HTTP server:
 ```bash
 python -m http.server 5000
+# or any other static file server
 ```
 
 5. Open your browser and navigate to `http://localhost:5000`
 
 ## Configuration
 
-MediaDock uses a `config.json` file to store your API keys and server settings. This approach keeps sensitive information out of the codebase and makes GitHub deployment safer.
+MediaDock uses embedded configuration directly in the HTML file. This approach works with any basic HTTP server and keeps your API keys local while allowing safe GitHub deployment.
 
 ### Required APIs
 

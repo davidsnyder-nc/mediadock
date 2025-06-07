@@ -747,6 +747,34 @@
         };
 
         // --- Search Functions ---
+        const searchActorMovies = async (actorName) => {
+            try {
+                // First, search for the actor
+                const personData = await makeApiRequest(`https://api.themoviedb.org/3/search/person?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(actorName)}`);
+                
+                if (personData.results && personData.results.length > 0) {
+                    const actor = personData.results[0]; // Get the most popular match
+                    
+                    // Get the actor's movie credits
+                    const creditsData = await makeApiRequest(`https://api.themoviedb.org/3/person/${actor.id}/movie_credits?api_key=${userSettings.tmdbApi}`);
+                    
+                    if (creditsData.cast && creditsData.cast.length > 0) {
+                        // Sort by popularity and filter out movies without poster
+                        const popularMovies = creditsData.cast
+                            .filter(movie => movie.poster_path && movie.release_date)
+                            .sort((a, b) => b.popularity - a.popularity)
+                            .slice(0, 20); // Limit to top 20
+                        
+                        return { results: popularMovies, actorName: actor.name };
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error('Error searching actor movies:', error);
+                return null;
+            }
+        };
+
         const searchMovies = async (query) => {
             const defaultContent = document.getElementById('movie-default-content');
             
@@ -767,14 +795,45 @@
                 if (defaultContent) defaultContent.style.display = 'none';
                 movieResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 
-                const data = await makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}`);
+                // Try both movie search and actor search simultaneously
+                const [movieData, actorMovies] = await Promise.all([
+                    makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&sort_by=popularity.desc`),
+                    searchActorMovies(query)
+                ]);
                 
-                if (data.results && data.results.length > 0) {
-                    movieResultsContainer.innerHTML = data.results.map(createMovieCard).join('');
+                let allResults = [];
+                let resultHeader = '';
+                
+                // Combine results, prioritizing direct movie matches
+                if (movieData.results && movieData.results.length > 0) {
+                    // Sort movie results by popularity
+                    const sortedMovies = movieData.results.sort((a, b) => b.popularity - a.popularity);
+                    allResults = [...sortedMovies];
+                    resultHeader = `Movies matching "${query}"`;
+                }
+                
+                // Add actor movies if found and not too many direct matches
+                if (actorMovies && actorMovies.results.length > 0) {
+                    if (allResults.length === 0) {
+                        allResults = actorMovies.results;
+                        resultHeader = `Movies starring ${actorMovies.actorName}`;
+                    } else if (allResults.length < 10) {
+                        // Add some actor movies to the results
+                        const additionalMovies = actorMovies.results
+                            .filter(actorMovie => !allResults.some(movie => movie.id === actorMovie.id))
+                            .slice(0, 5);
+                        allResults = [...allResults, ...additionalMovies];
+                        resultHeader = `Movies for "${query}" and starring ${actorMovies.actorName}`;
+                    }
+                }
+                
+                if (allResults.length > 0) {
+                    const headerHtml = resultHeader ? `<div class="text-center mb-4"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
+                    movieResultsContainer.innerHTML = headerHtml + allResults.map(createMovieCard).join('');
                     lucide.createIcons();
                     
                     // Load Gemini descriptions for each movie
-                    data.results.forEach(async (movie) => {
+                    allResults.forEach(async (movie) => {
                         const description = await getGeminiDescription(movie.title, movie.overview);
                         const descElement = document.getElementById(`gemini-desc-${movie.id}`);
                         if (descElement) {
@@ -787,6 +846,34 @@
             } catch (error) {
                 movieResultsContainer.innerHTML = '<p class="text-red-400 text-center py-8">Error searching movies. Check your API key.</p>';
                 showNotification('Failed to search movies', 'error');
+            }
+        };
+
+        const searchActorTvShows = async (actorName) => {
+            try {
+                // First, search for the actor
+                const personData = await makeApiRequest(`https://api.themoviedb.org/3/search/person?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(actorName)}`);
+                
+                if (personData.results && personData.results.length > 0) {
+                    const actor = personData.results[0]; // Get the most popular match
+                    
+                    // Get the actor's TV credits
+                    const creditsData = await makeApiRequest(`https://api.themoviedb.org/3/person/${actor.id}/tv_credits?api_key=${userSettings.tmdbApi}`);
+                    
+                    if (creditsData.cast && creditsData.cast.length > 0) {
+                        // Sort by popularity and filter out shows without poster
+                        const popularShows = creditsData.cast
+                            .filter(show => show.poster_path && show.first_air_date)
+                            .sort((a, b) => b.popularity - a.popularity)
+                            .slice(0, 20); // Limit to top 20
+                        
+                        return { results: popularShows, actorName: actor.name };
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error('Error searching actor TV shows:', error);
+                return null;
             }
         };
 
@@ -810,14 +897,45 @@
                 if (defaultContent) defaultContent.style.display = 'none';
                 tvResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 
-                const data = await makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}`);
+                // Try both TV search and actor search simultaneously
+                const [tvData, actorShows] = await Promise.all([
+                    makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&sort_by=popularity.desc`),
+                    searchActorTvShows(query)
+                ]);
                 
-                if (data.results && data.results.length > 0) {
-                    tvResultsContainer.innerHTML = data.results.map(createTvCard).join('');
+                let allResults = [];
+                let resultHeader = '';
+                
+                // Combine results, prioritizing direct TV show matches
+                if (tvData.results && tvData.results.length > 0) {
+                    // Sort TV results by popularity
+                    const sortedShows = tvData.results.sort((a, b) => b.popularity - a.popularity);
+                    allResults = [...sortedShows];
+                    resultHeader = `TV shows matching "${query}"`;
+                }
+                
+                // Add actor shows if found and not too many direct matches
+                if (actorShows && actorShows.results.length > 0) {
+                    if (allResults.length === 0) {
+                        allResults = actorShows.results;
+                        resultHeader = `TV shows starring ${actorShows.actorName}`;
+                    } else if (allResults.length < 10) {
+                        // Add some actor shows to the results
+                        const additionalShows = actorShows.results
+                            .filter(actorShow => !allResults.some(show => show.id === actorShow.id))
+                            .slice(0, 5);
+                        allResults = [...allResults, ...additionalShows];
+                        resultHeader = `TV shows for "${query}" and starring ${actorShows.actorName}`;
+                    }
+                }
+                
+                if (allResults.length > 0) {
+                    const headerHtml = resultHeader ? `<div class="text-center mb-4"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
+                    tvResultsContainer.innerHTML = headerHtml + allResults.map(createTvCard).join('');
                     lucide.createIcons();
                     
                     // Load Gemini descriptions for each TV show
-                    data.results.forEach(async (show) => {
+                    allResults.forEach(async (show) => {
                         const description = await getGeminiDescription(show.name, show.overview);
                         const descElement = document.getElementById(`gemini-desc-${show.id}`);
                         if (descElement) {

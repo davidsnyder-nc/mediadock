@@ -1,5 +1,5 @@
-# MediaDock Configuration
-config.json
+# MediaDock Local Configuration
+index.html
 
 # Python
 __pycache__/

@@ -73,7 +73,7 @@
         }
         .card-face-back {
             transform: rotateY(180deg);
-            background-size: cover;
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
         }
@@ -319,7 +319,7 @@
                 <div class="card-container">
                     <div class="card" onclick="flipCard(this, '${movie.id}')">
                         <div class="card-face card-face-front">
-                            <img src="${posterUrl}" alt="${movie.title}" class="w-full h-48 object-cover rounded-lg mb-3" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K'">
+                            <img src="${posterUrl}" alt="${movie.title}" class="w-full h-48 object-contain rounded-lg mb-3" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K'">
                             <h3 class="text-white font-semibold text-sm mb-2 line-clamp-2">${movie.title}</h3>
                             <p class="text-gray-400 text-xs mb-2">${movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}</p>
                             <p class="text-gray-300 text-xs line-clamp-3 desc-placeholder">${movie.overview || 'No description available.'}</p>
@@ -356,7 +356,7 @@
                 <div class="card-container">
                     <div class="card" onclick="flipCard(this, '${show.id}')">
                         <div class="card-face card-face-front">
-                            <img src="${posterUrl}" alt="${show.name}" class="w-full h-48 object-cover rounded-lg mb-3" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K'">
+                            <img src="${posterUrl}" alt="${show.name}" class="w-full h-48 object-contain rounded-lg mb-3" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K'">
                             <h3 class="text-white font-semibold text-sm mb-2 line-clamp-2">${show.name}</h3>
                             <p class="text-gray-400 text-xs mb-2">${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'Unknown'}</p>
                             <p class="text-gray-300 text-xs line-clamp-3 desc-placeholder">${show.overview || 'No description available.'}</p>

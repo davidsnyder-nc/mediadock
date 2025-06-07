@@ -743,6 +743,24 @@
                 calendarContainer?.classList.remove('hidden');
                 resultsContainer?.classList.add('hidden');
                 resultsContainer?.classList.remove('grid');
+                
+                // Clear search results and headers when switching to calendar
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = resultsContainer.innerHTML.includes('tv-default-content') ? resultsContainer.innerHTML : '';
+                }
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
+                
+                // Clear search input
+                const searchInput = document.getElementById('tv-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                
+                // Reset search state
+                currentTvQuery = '';
+                tvPage = 1;
+                
                 loadSonarrCalendar();
             } else {
                 searchBtn?.classList.add('active');

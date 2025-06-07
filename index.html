@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bg-gray-900-gradient {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+        }
+        .nav-button {
+            transition: all 0.2s ease-in-out;
+            color: #9ca3af;
+        }
+        .nav-button.active {
+            color: #e0f2fe; /* Light blue for active icon */
+            transform: translateY(-3px);
+        }
+        .nav-button.active .nav-dot {
+            opacity: 1;
+        }
+        .nav-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #38bdf8; /* Sky blue dot */
+            border-radius: 50%;
+            position: absolute;
+            bottom: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .page { display: none; }
+        .page.active { display: flex; flex-direction: column; height: 100%; }
+        
+        /* Card Flip Styles */
+        .card-container {
+            perspective: 1000px;
+            aspect-ratio: 2 / 3.5; /* Give container a responsive aspect ratio */
+        }
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            background-color: transparent;
+        }
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: rgba(31, 41, 55, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-face-front {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+        }
+        .card-face-back {
+            transform: rotateY(180deg);
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .card-back-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly; /* Changed to space-evenly */
+            align-items: center;
+            padding: 1rem;
+            background-color: rgba(22, 33, 62, 0.85); /* Dark blue overlay */
+            backdrop-filter: blur(8px);
+        }
+        
+        .form-input {
+            background-color: rgba(43, 52, 69, 0.8);
+            border-color: rgba(75, 85, 99, 0.8);
+            transition: all 0.2s ease-in-out;
+        }
+        .form-input:focus {
+            background-color: rgba(55, 65, 81, 1);
+            border-color: #38bdf8;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+        }
+        #notification-modal, #trailer-modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .spinner {
+            border-top-color: #38bdf8;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .desc-placeholder { min-height: 24px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .toggle-btn {
+            transition: all 0.2s ease-in-out;
+            color: #9ca3af;
+        }
+        .toggle-btn.active {
+            background-color: #38bdf8;
+            color: #0f172a;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+        }
+        .action-btn {
+             background: rgba(56, 189, 248, 0.1);
+             border: 1px solid rgba(56, 189, 248, 0.2);
+             transition: all 0.3s ease;
+        }
+        .action-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-900-gradient text-gray-200 h-full">
+
+    <div id="app" class="max-w-md mx-auto h-full flex flex-col relative">
+        <main class="flex-grow p-4 overflow-y-auto no-scrollbar">
+            <!-- Pages Container -->
+            <div id="pages-container" class="h-full">
+                <!-- Movies Page -->
+                <div id="movies-page" class="page">
+                    <div class="mb-4 relative">
+                        <input id="movie-search" type="text" placeholder="Search for a movie..." class="w-full form-input text-white rounded-lg p-3 pr-10">
+                         <i data-lucide="search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <div class="overflow-y-auto no-scrollbar flex-grow">
+                        <div id="movie-results" class="grid grid-cols-1 gap-4">
+                            <!-- Movie results will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TV Shows Page -->
+                <div id="tv-page" class="page">
+                     <div class="flex justify-center mb-4 bg-gray-800 rounded-lg p-1">
+                        <button id="tv-calendar-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Calendar</button>
+                        <button id="tv-search-btn" class="toggle-btn flex-1 py-2 text-sm font-semibold rounded-md">Search</button>
+                    </div>
+                    <div id="tv-search-container" class="hidden">
+                         <div class="mb-4 relative">
+                            <input id="tv-search" type="text" placeholder="Search for a TV show..." class="w-full form-input text-white rounded-lg p-3 pr-10">
+                            <i data-lucide="search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div id="tv-content-area" class="overflow-y-auto no-scrollbar flex-grow">
+                        <div id="sonarr-calendar" class="space-y-1 hidden"></div>
+                        <div id="tv-results" class="hidden grid-cols-1 gap-4"></div>
+                    </div>
+                </div>
+
+                <!-- Downloads Page -->
+                <div id="downloads-page" class="page">
+                    <div id="sabnzbd-history" class="space-y-3 overflow-y-auto no-scrollbar flex-grow"></div>
+                </div>
+
+                <!-- Settings Page -->
+                <div id="settings-page" class="page">
+                    <div class="space-y-4 overflow-y-auto no-scrollbar flex-grow">
+                        <h3 class="text-lg font-medium text-white mb-2">API Settings</h3>
+                        <div class="space-y-3">
+                            <input id="sonarr-url" type="text" placeholder="http://192.168.1.20:8989" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sonarr-api" type="text" placeholder="Sonarr API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="radarr-url" type="text" placeholder="http://192.168.1.20:7878" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="radarr-api" type="text" placeholder="Radarr API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sabnzbd-url" type="text" placeholder="http://192.168.1.20:8080" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="sabnzbd-api" type="text" placeholder="SABnzbd API Key" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="tmdb-api" type="text" placeholder="TheMovieDB API Key (v3 Auth)" class="w-full form-input text-white rounded-lg p-2">
+                            <input id="gemini-api" type="text" placeholder="Gemini API Key" class="w-full form-input text-white rounded-lg p-2">
+                        </div>
+                        <button id="save-settings" class="w-full action-btn text-white font-bold py-2 px-4 rounded-lg">
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Navigation Bar -->
+        <nav class="flex justify-around bg-gray-800/50 backdrop-filter backdrop-blur-lg p-2 sticky bottom-0 border-t border-gray-700/50">
+            <button data-page="movies-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="film"></i><span class="text-xs mt-1">Movies</span><div class="nav-dot"></div>
+            </button>
+            <button data-page="tv-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="tv"></i><span class="text-xs mt-1">TV</span><div class="nav-dot"></div>
+            </button>
+            <button data-page="downloads-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="arrow-down-to-line"></i><span class="text-xs mt-1">Downloads</span><div class="nav-dot"></div>
+            </button>
+            <button data-page="settings-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
+                <i data-lucide="settings"></i><span class="text-xs mt-1">Settings</span><div class="nav-dot"></div>
+            </button>
+        </nav>
+        
+        <!-- Notification Modal -->
+        <div id="notification-modal" class="fixed bottom-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-white shadow-lg opacity-0 transform translate-y-4 pointer-events-none">
+            <p id="notification-message"></p>
+        </div>
+        
+        <!-- Trailer Modal -->
+        <div id="trailer-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+             <div id="trailer-modal-content" class="bg-gray-900 rounded-lg w-full max-w-2xl aspect-video relative">
+                <button id="close-trailer-btn" class="absolute -top-2 -right-2 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center z-10"><i data-lucide="x"></i></button>
+                <div id="trailer-container" class="w-full h-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- App State & Config ---
+        let currentPage = 'movies-page';
+        let searchTimeout;
+        const SETTINGS_KEY = 'mediaHubSettings';
+        const defaultSettings = {
+            sonarrUrl: 'http://192.168.1.20:8989', sonarrApi: '',
+            radarrUrl: 'http://192.168.1.20:7878', radarrApi: '',
+            sabnzbdUrl: 'http://192.168.1.20:8080', sabnzbdApi: '',
+            tmdbApi: '', geminiApi: ''
+        };
+        let userSettings = {};
+
+        // --- UI Elements ---
+        const navButtons = document.querySelectorAll('.nav-button');
+        const pages = document.querySelectorAll('.page');
+        const saveSettingsBtn = document.getElementById('save-settings');
+        const movieSearchInput = document.getElementById('movie-search');
+        const tvSearchInput = document.getElementById('tv-search');
+        const movieResultsContainer = document.getElementById('movie-results');
+        const tvResultsContainer = document.getElementById('tv-results');
+        const sabnzbdHistoryContainer = document.getElementById('sabnzbd-history');
+        const sonarrCalendarContainer = document.getElementById('sonarr-calendar');
+        const notificationModal = document.getElementById('notification-modal');
+        const notificationMessage = document.getElementById('notification-message');
+        const trailerModal = document.getElementById('trailer-modal');
+        const closeTrailerBtn = document.getElementById('close-trailer-btn');
+        const trailerContainer = document.getElementById('trailer-container');
+        const tvCalendarBtn = document.getElementById('tv-calendar-btn');
+        const tvSearchBtn = document.getElementById('tv-search-btn');
+        const tvSearchContainer = document.getElementById('tv-search-container');
+        const tvContentArea = document.getElementById('tv-content-area');
+
+        // --- Helper Functions ---
+        const showNotification = (message, type = 'info') => {
+            notificationMessage.textContent = message;
+            notificationModal.className = `fixed bottom-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-white shadow-lg ${type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600'}`;
+            notificationModal.style.opacity = '1';
+            notificationModal.style.transform = 'translateX(-50%) translateY(0)';
+            setTimeout(() => {
+                notificationModal.style.opacity = '0';
+                notificationModal.style.transform = 'translateX(-50%) translateY(1rem)';
+            }, 3000);
+        };
+
+        const makeApiRequest = async (url, options = {}) => {
+            try {
+                const response = await fetch(url, { ...options });
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                return await response.json();
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        };
+
+        const saveSettings = () => {
+            const settings = {
+                sonarrUrl: document.getElementById('sonarr-url').value,
+                sonarrApi: document.getElementById('sonarr-api').value,
+                radarrUrl: document.getElementById('radarr-url').value,
+                radarrApi: document.getElementById('radarr-api').value,
+                sabnzbdUrl: document.getElementById('sabnzbd-url').value,
+                sabnzbdApi: document.getElementById('sabnzbd-api').value,
+                tmdbApi: document.getElementById('tmdb-api').value,
+                geminiApi: document.getElementById('gemini-api').value
+            };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            userSettings = settings;
+            showNotification('Settings saved successfully!', 'success');
+        };
+
+        const loadSettings = () => {
+            const stored = localStorage.getItem(SETTINGS_KEY);
+            userSettings = stored ? JSON.parse(stored) : { ...defaultSettings };
+            
+            document.getElementById('sonarr-url').value = userSettings.sonarrUrl || defaultSettings.sonarrUrl;
+            document.getElementById('sonarr-api').value = userSettings.sonarrApi || '';
+            document.getElementById('radarr-url').value = userSettings.radarrUrl || defaultSettings.radarrUrl;
+            document.getElementById('radarr-api').value = userSettings.radarrApi || '';
+            document.getElementById('sabnzbd-url').value = userSettings.sabnzbdUrl || defaultSettings.sabnzbdUrl;
+            document.getElementById('sabnzbd-api').value = userSettings.sabnzbdApi || '';
+            document.getElementById('tmdb-api').value = userSettings.tmdbApi || '';
+            document.getElementById('gemini-api').value = userSettings.geminiApi || '';
+        };
+
+        // --- Card Creation ---
+        const createMovieCard = (movie) => {
+            const posterUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 
+                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
+            
+            return `
+                <div class="card-container">
+                    <div class="card" onclick="flipCard(this, '${movie.id}')">
+                        <div class="card-face card-face-front">
+                            <img src="${posterUrl}" alt="${movie.title}" class="w-full h-48 object-cover rounded-lg mb-3" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K'">
+                            <h3 class="text-white font-semibold text-sm mb-2 line-clamp-2">${movie.title}</h3>
+                            <p class="text-gray-400 text-xs mb-2">${movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}</p>
+                            <p class="text-gray-300 text-xs line-clamp-3 desc-placeholder">${movie.overview || 'No description available.'}</p>
+                        </div>
+                        <div class="card-face card-face-back" style="background-image: url('${posterUrl}')">
+                            <div class="card-back-overlay">
+                                <div class="text-center space-y-4">
+                                    <h3 class="text-white font-bold text-lg">${movie.title}</h3>
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <span class="text-yellow-400 text-sm">★</span>
+                                        <span class="text-white text-sm">${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
+                                    </div>
+                                    <div class="flex flex-col space-y-2 w-full">
+                                        <button onclick="addToRadarr('${movie.id}'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                            <i data-lucide="plus" class="w-4 h-4 inline mr-1"></i>Add to Radarr
+                                        </button>
+                                        <button onclick="watchTrailer('${movie.id}'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                            <i data-lucide="play" class="w-4 h-4 inline mr-1"></i>Watch Trailer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const createTvCard = (show) => {
+            const posterUrl = show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : 
+                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
+            
+            return `
+                <div class="card-container">
+                    <div class="card" onclick="flipCard(this, '${show.id}')">
+                        <div class="card-face card-face-front">
+                            <img src="${posterUrl}" alt="${show.name}" class="w-full h-48 object-cover rounded-lg mb-3" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMzc0MTUxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Q0EzQUYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K'">
+                            <h3 class="text-white font-semibold text-sm mb-2 line-clamp-2">${show.name}</h3>
+                            <p class="text-gray-400 text-xs mb-2">${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'Unknown'}</p>
+                            <p class="text-gray-300 text-xs line-clamp-3 desc-placeholder">${show.overview || 'No description available.'}</p>
+                        </div>
+                        <div class="card-face card-face-back" style="background-image: url('${posterUrl}')">
+                            <div class="card-back-overlay">
+                                <div class="text-center space-y-4">
+                                    <h3 class="text-white font-bold text-lg">${show.name}</h3>
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <span class="text-yellow-400 text-sm">★</span>
+                                        <span class="text-white text-sm">${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                                    </div>
+                                    <div class="flex flex-col space-y-2 w-full">
+                                        <button onclick="addToSonarr('${show.id}'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                            <i data-lucide="plus" class="w-4 h-4 inline mr-1"></i>Add to Sonarr
+                                        </button>
+                                        <button onclick="watchTrailer('${show.id}', 'tv'); event.stopPropagation()" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                            <i data-lucide="play" class="w-4 h-4 inline mr-1"></i>Watch Trailer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // --- Navigation ---
+        const showPage = (pageId) => {
+            pages.forEach(page => page.classList.remove('active'));
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+            currentPage = pageId;
+
+            if (pageId === 'tv-page') {
+                toggleTvView('calendar');
+                loadSonarrCalendar();
+            } else if (pageId === 'downloads-page') {
+                loadSabnzbdHistory();
+            }
+        };
+
+        // --- TV Toggle Functions ---
+        const toggleTvView = (view) => {
+            const calendarBtn = tvCalendarBtn;
+            const searchBtn = tvSearchBtn;
+            const searchContainer = tvSearchContainer;
+            const calendarContainer = sonarrCalendarContainer;
+            const resultsContainer = tvResultsContainer;
+
+            if (view === 'calendar') {
+                calendarBtn.classList.add('active');
+                searchBtn.classList.remove('active');
+                searchContainer.classList.add('hidden');
+                calendarContainer.classList.remove('hidden');
+                resultsContainer.classList.add('hidden');
+                resultsContainer.classList.remove('grid');
+            } else {
+                searchBtn.classList.add('active');
+                calendarBtn.classList.remove('active');
+                searchContainer.classList.remove('hidden');
+                calendarContainer.classList.add('hidden');
+                resultsContainer.classList.remove('hidden');
+                resultsContainer.classList.add('grid');
+            }
+        };
+
+        // --- Card Flip Function ---
+        window.flipCard = (cardElement, itemId) => {
+            cardElement.classList.toggle('is-flipped');
+        };
+
+        // --- Search Functions ---
+        const searchMovies = async (query) => {
+            if (!query.trim() || !userSettings.tmdbApi) {
+                movieResultsContainer.innerHTML = userSettings.tmdbApi ? '' : '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
+                return;
+            }
+
+            try {
+                movieResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
+                
+                const data = await makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}`);
+                
+                if (data.results && data.results.length > 0) {
+                    movieResultsContainer.innerHTML = data.results.map(createMovieCard).join('');
+                    lucide.createIcons();
+                } else {
+                    movieResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No movies found</p>';
+                }
+            } catch (error) {
+                movieResultsContainer.innerHTML = '<p class="text-red-400 text-center py-8">Error searching movies. Check your API key.</p>';
+                showNotification('Failed to search movies', 'error');
+            }
+        };
+
+        const searchTvShows = async (query) => {
+            if (!query.trim() || !userSettings.tmdbApi) {
+                tvResultsContainer.innerHTML = userSettings.tmdbApi ? '' : '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
+                return;
+            }
+
+            try {
+                tvResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
+                
+                const data = await makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}`);
+                
+                if (data.results && data.results.length > 0) {
+                    tvResultsContainer.innerHTML = data.results.map(createTvCard).join('');
+                    lucide.createIcons();
+                } else {
+                    tvResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No TV shows found</p>';
+                }
+            } catch (error) {
+                tvResultsContainer.innerHTML = '<p class="text-red-400 text-center py-8">Error searching TV shows. Check your API key.</p>';
+                showNotification('Failed to search TV shows', 'error');
+            }
+        };
+
+        // --- Radarr/Sonarr Functions ---
+        window.addToRadarr = async (tmdbId) => {
+            if (!userSettings.radarrUrl || !userSettings.radarrApi) {
+                showNotification('Please configure Radarr settings first', 'error');
+                return;
+            }
+
+            try {
+                // Get movie details from TMDB
+                const movieData = await makeApiRequest(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${userSettings.tmdbApi}`);
+                
+                // Add to Radarr
+                const radarrPayload = {
+                    title: movieData.title,
+                    qualityProfileId: 1,
+                    monitored: true,
+                    tmdbId: parseInt(tmdbId),
+                    year: new Date(movieData.release_date).getFullYear(),
+                    rootFolderPath: "/movies/",
+                    addOptions: { searchForMovie: true }
+                };
+
+                await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(radarrPayload)
+                });
+
+                showNotification(`${movieData.title} added to Radarr!`, 'success');
+            } catch (error) {
+                console.error('Failed to add to Radarr:', error);
+                showNotification('Failed to add movie to Radarr', 'error');
+            }
+        };
+
+        window.addToSonarr = async (tmdbId) => {
+            if (!userSettings.sonarrUrl || !userSettings.sonarrApi) {
+                showNotification('Please configure Sonarr settings first', 'error');
+                return;
+            }
+
+            try {
+                // Get TV show details from TMDB
+                const showData = await makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${userSettings.tmdbApi}`);
+                
+                // Convert TMDB data to Sonarr format
+                const sonarrPayload = {
+                    title: showData.name,
+                    qualityProfileId: 1,
+                    monitored: true,
+                    tvdbId: 0, // Would need additional API call to get TVDB ID
+                    rootFolderPath: "/tv/",
+                    addOptions: { searchForMissingEpisodes: true }
+                };
+
+                await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sonarrPayload)
+                });
+
+                showNotification(`${showData.name} added to Sonarr!`, 'success');
+            } catch (error) {
+                console.error('Failed to add to Sonarr:', error);
+                showNotification('Failed to add show to Sonarr', 'error');
+            }
+        };
+
+        // --- Calendar Functions ---
+        const loadSonarrCalendar = async () => {
+            if (!userSettings.sonarrUrl || !userSettings.sonarrApi) {
+                sonarrCalendarContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please configure Sonarr settings first</p>';
+                return;
+            }
+
+            try {
+                sonarrCalendarContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
+                
+                const today = new Date();
+                const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+                
+                const data = await makeApiRequest(
+                    `${userSettings.sonarrUrl}/api/v3/calendar?start=${today.toISOString().split('T')[0]}&end=${nextWeek.toISOString().split('T')[0]}&apikey=${userSettings.sonarrApi}`
+                );
+
+                if (data && data.length > 0) {
+                    const calendarHtml = data.map(episode => `
+                        <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-white font-medium text-sm">${episode.series?.title || 'Unknown Series'}</h4>
+                                <span class="text-gray-400 text-xs">${new Date(episode.airDate).toLocaleDateString()}</span>
+                            </div>
+                            <p class="text-gray-300 text-xs mb-1">S${episode.seasonNumber?.toString().padStart(2, '0')}E${episode.episodeNumber?.toString().padStart(2, '0')}</p>
+                            <p class="text-gray-400 text-xs">${episode.title || 'Episode'}</p>
+                        </div>
+                    `).join('');
+                    sonarrCalendarContainer.innerHTML = calendarHtml;
+                } else {
+                    sonarrCalendarContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No upcoming episodes</p>';
+                }
+            } catch (error) {
+                sonarrCalendarContainer.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load calendar</p>';
+                showNotification('Failed to load Sonarr calendar', 'error');
+            }
+        };
+
+        // --- SABnzbd Functions ---
+        const loadSabnzbdHistory = async () => {
+            if (!userSettings.sabnzbdUrl || !userSettings.sabnzbdApi) {
+                sabnzbdHistoryContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please configure SABnzbd settings first</p>';
+                return;
+            }
+
+            try {
+                sabnzbdHistoryContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
+                
+                const data = await makeApiRequest(
+                    `${userSettings.sabnzbdUrl}/api?mode=history&limit=20&apikey=${userSettings.sabnzbdApi}&output=json`
+                );
+
+                if (data?.history?.slots && data.history.slots.length > 0) {
+                    const historyHtml = data.history.slots.map(item => `
+                        <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-white font-medium text-sm truncate">${item.name}</h4>
+                                <span class="text-xs px-2 py-1 rounded ${
+                                    item.status === 'Completed' ? 'bg-green-600' : 
+                                    item.status === 'Failed' ? 'bg-red-600' : 'bg-yellow-600'
+                                }">${item.status}</span>
+                            </div>
+                            <div class="flex justify-between text-gray-400 text-xs">
+                                <span>${item.size}</span>
+                                <span>${new Date(item.completed * 1000).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    sabnzbdHistoryContainer.innerHTML = historyHtml;
+                } else {
+                    sabnzbdHistoryContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No download history</p>';
+                }
+            } catch (error) {
+                sabnzbdHistoryContainer.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load downloads</p>';
+                showNotification('Failed to load SABnzbd history', 'error');
+            }
+        };
+
+        // --- Trailer Functions ---
+        window.watchTrailer = async (tmdbId, type = 'movie') => {
+            if (!userSettings.tmdbApi) {
+                showNotification('Please set your TMDB API key in settings', 'error');
+                return;
+            }
+
+            try {
+                const data = await makeApiRequest(
+                    `https://api.themoviedb.org/3/${type}/${tmdbId}/videos?api_key=${userSettings.tmdbApi}`
+                );
+
+                const trailer = data.results?.find(video => 
+                    video.type === 'Trailer' && video.site === 'YouTube'
+                );
+
+                if (trailer) {
+                    trailerContainer.innerHTML = `
+                        <iframe 
+                            src="https://www.youtube.com/embed/${trailer.key}?autoplay=1" 
+                            class="w-full h-full rounded-lg" 
+                            frameborder="0" 
+                            allowfullscreen>
+                        </iframe>
+                    `;
+                    trailerModal.classList.remove('hidden');
+                } else {
+                    showNotification('No trailer available', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to load trailer', 'error');
+            }
+        };
+
+        // --- Event Listeners ---
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const pageId = button.getAttribute('data-page');
+                showPage(pageId);
+            });
+        });
+
+        saveSettingsBtn.addEventListener('click', saveSettings);
+
+        movieSearchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchMovies(e.target.value), 300);
+        });
+
+        tvSearchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchTvShows(e.target.value), 300);
+        });
+
+        tvCalendarBtn.addEventListener('click', () => toggleTvView('calendar'));
+        tvSearchBtn.addEventListener('click', () => toggleTvView('search'));
+
+        closeTrailerBtn.addEventListener('click', () => {
+            trailerModal.classList.add('hidden');
+            trailerContainer.innerHTML = '';
+        });
+
+        trailerModal.addEventListener('click', (e) => {
+            if (e.target === trailerModal) {
+                trailerModal.classList.add('hidden');
+                trailerContainer.innerHTML = '';
+            }
+        });
+
+        // --- Initialize App ---
+        loadSettings();
+        showPage('movies-page');
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -464,6 +464,10 @@
         // --- App State & Config ---
         let currentPage = 'movies-page';
         let searchTimeout;
+        let currentMovieQuery = '';
+        let currentTvQuery = '';
+        let moviePage = 1;
+        let tvPage = 1;
         
         // Configuration - Edit these values with your API keys and server details
         let userSettings = {
@@ -476,6 +480,21 @@
             tmdbApi: "607da9c4fc03dd0c28b2098e855c73db",
             geminiApi: "AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg",
             defaultPage: "tv-page"
+        };
+
+        // --- Utility Functions ---
+        const isMobile = () => window.innerWidth < 768;
+        const getResultsLimit = () => isMobile() ? 8 : 9;
+        
+        const createLoadMoreButton = (type) => {
+            return `
+                <div class="col-span-full flex justify-center mt-6">
+                    <button onclick="${type === 'movie' ? 'loadMoreMovies' : 'loadMoreTvShows'}()" 
+                            class="action-btn text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300">
+                        Load More Results
+                    </button>
+                </div>
+            `;
         };
 
         // --- UI Elements ---
@@ -779,16 +798,22 @@
             }
         };
 
-        const searchMovies = async (query) => {
+        const searchMovies = async (query, page = 1) => {
             const defaultContent = document.getElementById('movie-default-content');
             
             if (!query.trim()) {
                 // Show default content when search is empty
                 movieSearchHeader.innerHTML = '';
+                currentMovieQuery = '';
+                moviePage = 1;
                 if (defaultContent) defaultContent.style.display = 'block';
                 movieResultsContainer.innerHTML = movieResultsContainer.innerHTML.includes('movie-default-content') ? movieResultsContainer.innerHTML : '';
                 return;
             }
+            
+            // Store current query and page for load more functionality
+            currentMovieQuery = query;
+            moviePage = page;
             
             if (!userSettings.tmdbApi) {
                 if (defaultContent) defaultContent.style.display = 'none';
@@ -800,42 +825,62 @@
                 if (defaultContent) defaultContent.style.display = 'none';
                 movieResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 
-                // Try both movie search and actor search simultaneously
-                const [movieData, actorMovies] = await Promise.all([
-                    makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&sort_by=popularity.desc`),
-                    searchActorMovies(query)
-                ]);
-                
                 let allResults = [];
                 let resultHeader = '';
+                let hasMoreResults = false;
+                const resultsLimit = getResultsLimit();
                 
-                // Combine results, prioritizing direct movie matches
-                if (movieData.results && movieData.results.length > 0) {
-                    // Sort movie results by popularity
-                    const sortedMovies = movieData.results.sort((a, b) => b.popularity - a.popularity);
-                    allResults = [...sortedMovies];
-                    resultHeader = `Movies matching "${query}"`;
+                if (page === 1) {
+                    // For first page, try both movie search and actor search
+                    const [movieData, actorMovies] = await Promise.all([
+                        makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=1`),
+                        searchActorMovies(query)
+                    ]);
+                    
+                    // Combine results, prioritizing direct movie matches
+                    if (movieData.results && movieData.results.length > 0) {
+                        const sortedMovies = movieData.results.sort((a, b) => b.popularity - a.popularity);
+                        allResults = [...sortedMovies];
+                        resultHeader = `Movies matching "${query}"`;
+                    }
+                    
+                    // Add actor movies if found and not too many direct matches
+                    if (actorMovies && actorMovies.results.length > 0) {
+                        if (allResults.length === 0) {
+                            allResults = actorMovies.results;
+                            resultHeader = `Movies starring ${actorMovies.actorName}`;
+                        } else if (allResults.length < 10) {
+                            const additionalMovies = actorMovies.results
+                                .filter(actorMovie => !allResults.some(movie => movie.id === actorMovie.id))
+                                .slice(0, 5);
+                            allResults = [...allResults, ...additionalMovies];
+                            resultHeader = `Movies for "${query}" and starring ${actorMovies.actorName}`;
+                        }
+                    }
+                } else {
+                    // For subsequent pages, only search movies
+                    const movieData = await makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=${page}`);
+                    if (movieData.results && movieData.results.length > 0) {
+                        allResults = movieData.results.sort((a, b) => b.popularity - a.popularity);
+                        resultHeader = `Movies matching "${query}" (Page ${page})`;
+                    }
                 }
                 
-                // Add actor movies if found and not too many direct matches
-                if (actorMovies && actorMovies.results.length > 0) {
-                    if (allResults.length === 0) {
-                        allResults = actorMovies.results;
-                        resultHeader = `Movies starring ${actorMovies.actorName}`;
-                    } else if (allResults.length < 10) {
-                        // Add some actor movies to the results
-                        const additionalMovies = actorMovies.results
-                            .filter(actorMovie => !allResults.some(movie => movie.id === actorMovie.id))
-                            .slice(0, 5);
-                        allResults = [...allResults, ...additionalMovies];
-                        resultHeader = `Movies for "${query}" and starring ${actorMovies.actorName}`;
-                    }
+                // Check if we have more results than our limit
+                if (allResults.length > resultsLimit) {
+                    hasMoreResults = true;
+                    allResults = allResults.slice(0, resultsLimit);
+                } else if (page === 1 && allResults.length === resultsLimit) {
+                    // Check if there might be more on next page
+                    hasMoreResults = true;
                 }
                 
                 if (allResults.length > 0) {
                     // Set header separately
                     movieSearchHeader.innerHTML = resultHeader ? `<div class="text-center mb-2"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
-                    movieResultsContainer.innerHTML = allResults.map(createMovieCard).join('');
+                    const moviesHtml = allResults.map(createMovieCard).join('');
+                    const loadMoreHtml = hasMoreResults ? createLoadMoreButton('movie') : '';
+                    movieResultsContainer.innerHTML = moviesHtml + loadMoreHtml;
                     lucide.createIcons();
                     
                     // Load Gemini descriptions for each movie

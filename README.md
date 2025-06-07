@@ -1,16 +1,26 @@
 # MediaDock
 
-A comprehensive media hub application designed for seamless media service integration across local networks, featuring intelligent interactions and adaptive user interfaces.
+A comprehensive media hub application designed for seamless media service integration across local networks, featuring intelligent interactions, card flip animations, and adaptive user interfaces.
 
 ## Features
 
+### Core Media Management
 - **Multi-service Integration**: Connects with Sonarr, Radarr, and SABnzbd for complete media management
-- **Responsive Design**: Optimized layouts for both mobile and desktop with sidebar navigation on larger screens
-- **Smart Search**: Movie and TV show search with TMDB integration and trailer support
-- **AI-Enhanced Descriptions**: Gemini AI integration for intelligent content descriptions
-- **Calendar View**: TV show calendar with upcoming episodes grouped by day
-- **Card Flip Animation**: Interactive movie/TV show cards with detailed information
+- **Recently Added Sections**: Dedicated sections for both movies and TV shows with automatic updates
+- **Quick Stats Panel**: Real-time display of total movies and TV series in your collection
+- **Smart Default Navigation**: TV Shows Calendar loads by default with intelligent tab switching
+
+### Enhanced User Interface
+- **Responsive Design**: Optimized layouts for both mobile (2-column grid) and desktop (3-column grid) with sidebar navigation
+- **Card Flip Animations**: Interactive movie/TV show cards with smooth flip transitions and persistent titles
+- **Adaptive Grid Layouts**: Consistent 2-column mobile grids across all sections for optimal touch experience
+- **Intelligent Search**: Enhanced movie and TV show search with TMDB integration and trailer support
+
+### Advanced Features
+- **AI-Enhanced Descriptions**: Gemini AI integration for intelligent content descriptions and recommendations
+- **TV Shows Calendar**: Upcoming episodes grouped by day (Today, Tomorrow, weekdays) with air times
 - **Real-time Downloads**: SABnzbd download history and status monitoring
+- **Settings Management**: Streamlined settings interface with clear field descriptions and API key guidance
 
 ## Technologies Used
 

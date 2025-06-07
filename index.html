@@ -902,6 +902,13 @@
             }
         };
 
+        // Load more movies function
+        window.loadMoreMovies = () => {
+            if (currentMovieQuery) {
+                searchMovies(currentMovieQuery, moviePage + 1);
+            }
+        };
+
         const searchActorTvShows = async (actorName) => {
             try {
                 // First, search for the actor
@@ -930,17 +937,23 @@
             }
         };
 
-        const searchTvShows = async (query) => {
+        const searchTvShows = async (query, page = 1) => {
             const defaultContent = document.getElementById('tv-default-content');
             
             if (!query.trim()) {
                 // Show default content when search is empty
                 tvSearchHeader.innerHTML = '';
                 tvSearchHeader.classList.add('hidden');
+                currentTvQuery = '';
+                tvPage = 1;
                 if (defaultContent) defaultContent.style.display = 'block';
                 tvResultsContainer.innerHTML = tvResultsContainer.innerHTML.includes('tv-default-content') ? tvResultsContainer.innerHTML : '';
                 return;
             }
+            
+            // Store current query and page for load more functionality
+            currentTvQuery = query;
+            tvPage = page;
             
             if (!userSettings.tmdbApi) {
                 if (defaultContent) defaultContent.style.display = 'none';
@@ -952,43 +965,63 @@
                 if (defaultContent) defaultContent.style.display = 'none';
                 tvResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 
-                // Try both TV search and actor search simultaneously
-                const [tvData, actorShows] = await Promise.all([
-                    makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&sort_by=popularity.desc`),
-                    searchActorTvShows(query)
-                ]);
-                
                 let allResults = [];
                 let resultHeader = '';
+                let hasMoreResults = false;
+                const resultsLimit = getResultsLimit();
                 
-                // Combine results, prioritizing direct TV show matches
-                if (tvData.results && tvData.results.length > 0) {
-                    // Sort TV results by popularity
-                    const sortedShows = tvData.results.sort((a, b) => b.popularity - a.popularity);
-                    allResults = [...sortedShows];
-                    resultHeader = `TV shows matching "${query}"`;
+                if (page === 1) {
+                    // For first page, try both TV search and actor search
+                    const [tvData, actorShows] = await Promise.all([
+                        makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=1`),
+                        searchActorTvShows(query)
+                    ]);
+                    
+                    // Combine results, prioritizing direct TV show matches
+                    if (tvData.results && tvData.results.length > 0) {
+                        const sortedShows = tvData.results.sort((a, b) => b.popularity - a.popularity);
+                        allResults = [...sortedShows];
+                        resultHeader = `TV shows matching "${query}"`;
+                    }
+                    
+                    // Add actor shows if found and not too many direct matches
+                    if (actorShows && actorShows.results.length > 0) {
+                        if (allResults.length === 0) {
+                            allResults = actorShows.results;
+                            resultHeader = `TV shows starring ${actorShows.actorName}`;
+                        } else if (allResults.length < 10) {
+                            const additionalShows = actorShows.results
+                                .filter(actorShow => !allResults.some(show => show.id === actorShow.id))
+                                .slice(0, 5);
+                            allResults = [...allResults, ...additionalShows];
+                            resultHeader = `TV shows for "${query}" and starring ${actorShows.actorName}`;
+                        }
+                    }
+                } else {
+                    // For subsequent pages, only search TV shows
+                    const tvData = await makeApiRequest(`https://api.themoviedb.org/3/search/tv?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}&page=${page}`);
+                    if (tvData.results && tvData.results.length > 0) {
+                        allResults = tvData.results.sort((a, b) => b.popularity - a.popularity);
+                        resultHeader = `TV shows matching "${query}" (Page ${page})`;
+                    }
                 }
                 
-                // Add actor shows if found and not too many direct matches
-                if (actorShows && actorShows.results.length > 0) {
-                    if (allResults.length === 0) {
-                        allResults = actorShows.results;
-                        resultHeader = `TV shows starring ${actorShows.actorName}`;
-                    } else if (allResults.length < 10) {
-                        // Add some actor shows to the results
-                        const additionalShows = actorShows.results
-                            .filter(actorShow => !allResults.some(show => show.id === actorShow.id))
-                            .slice(0, 5);
-                        allResults = [...allResults, ...additionalShows];
-                        resultHeader = `TV shows for "${query}" and starring ${actorShows.actorName}`;
-                    }
+                // Check if we have more results than our limit
+                if (allResults.length > resultsLimit) {
+                    hasMoreResults = true;
+                    allResults = allResults.slice(0, resultsLimit);
+                } else if (page === 1 && allResults.length === resultsLimit) {
+                    // Check if there might be more on next page
+                    hasMoreResults = true;
                 }
                 
                 if (allResults.length > 0) {
                     // Set header separately
                     tvSearchHeader.innerHTML = resultHeader ? `<div class="text-center mb-2"><h3 class="text-lg font-semibold text-gray-300">${resultHeader}</h3></div>` : '';
                     tvSearchHeader.classList.remove('hidden');
-                    tvResultsContainer.innerHTML = allResults.map(createTvCard).join('');
+                    const showsHtml = allResults.map(createTvCard).join('');
+                    const loadMoreHtml = hasMoreResults ? createLoadMoreButton('tv') : '';
+                    tvResultsContainer.innerHTML = showsHtml + loadMoreHtml;
                     lucide.createIcons();
                     
                     // Load Gemini descriptions for each TV show
@@ -1009,6 +1042,13 @@
                 tvSearchHeader.classList.add('hidden');
                 tvResultsContainer.innerHTML = '<p class="text-red-400 text-center py-8">Error searching TV shows. Check your API key.</p>';
                 showNotification('Failed to search TV shows', 'error');
+            }
+        };
+
+        // Load more TV shows function
+        window.loadMoreTvShows = () => {
+            if (currentTvQuery) {
+                searchTvShows(currentTvQuery, tvPage + 1);
             }
         };
 

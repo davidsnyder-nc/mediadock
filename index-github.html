@@ -805,7 +805,7 @@
                 
                 // Clear other content areas
                 if (resultsContainer) {
-                    resultsContainer.innerHTML = resultsContainer.innerHTML.includes('tv-default-content') ? resultsContainer.innerHTML : '';
+                    resultsContainer.innerHTML = '';
                 }
                 if (calendarContainer) {
                     calendarContainer.innerHTML = '';
@@ -831,7 +831,7 @@
                 
                 // Clear other content areas
                 if (resultsContainer) {
-                    resultsContainer.innerHTML = resultsContainer.innerHTML.includes('tv-default-content') ? resultsContainer.innerHTML : '';
+                    resultsContainer.innerHTML = '';
                 }
                 if (recentContainer) {
                     recentContainer.innerHTML = '';
@@ -1614,32 +1614,32 @@
                     sonarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 }
 
-                // Get all series and their episodes
-                const [seriesResponse, episodesResponse] = await Promise.all([
+                // Get series with episode files using history endpoint for better performance
+                const [seriesResponse, historyResponse] = await Promise.all([
                     makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`),
-                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/episode?apikey=${userSettings.sonarrApi}`)
+                    makeApiRequest(`${userSettings.sonarrUrl}/api/v3/history?pageSize=200&sortKey=date&sortDirection=descending&apikey=${userSettings.sonarrApi}`)
                 ]);
                 
-                if (seriesResponse && episodesResponse && episodesResponse.length > 0) {
-                    // Get episodes with files and recent dates, grouped by series
-                    const recentEpisodes = episodesResponse
-                        .filter(episode => episode.hasFile && episode.episodeFile?.dateAdded)
-                        .sort((a, b) => new Date(b.episodeFile.dateAdded) - new Date(a.episodeFile.dateAdded));
+                if (seriesResponse && historyResponse && historyResponse.records && historyResponse.records.length > 0) {
+                    // Filter to only downloaded episodes and group by series
+                    const downloadedEpisodes = historyResponse.records
+                        .filter(record => record.eventType === 'downloadFolderImported' && record.date)
+                        .slice(0, 100); // Limit to recent 100 downloads for performance
 
-                    // Group episodes by series and get the most recent episode date for each series
+                    // Group by series and get the most recent download date
                     const seriesMap = {};
-                    recentEpisodes.forEach(episode => {
-                        if (!seriesMap[episode.seriesId]) {
-                            const series = seriesResponse.find(s => s.id === episode.seriesId);
+                    downloadedEpisodes.forEach(record => {
+                        if (!seriesMap[record.seriesId]) {
+                            const series = seriesResponse.find(s => s.id === record.seriesId);
                             if (series) {
-                                seriesMap[episode.seriesId] = {
+                                seriesMap[record.seriesId] = {
                                     series: series,
-                                    latestEpisodeDate: episode.episodeFile.dateAdded,
+                                    latestEpisodeDate: record.date,
                                     episodeCount: 1
                                 };
                             }
                         } else {
-                            seriesMap[episode.seriesId].episodeCount++;
+                            seriesMap[record.seriesId].episodeCount++;
                         }
                     });
 

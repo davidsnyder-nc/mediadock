@@ -136,6 +136,146 @@
         .action-btn:hover {
             background: rgba(56, 189, 248, 0.2);
         }
+
+        /* Desktop Layout */
+        @media (min-width: 768px) {
+            #app {
+                max-width: 1200px;
+                display: grid;
+                grid-template-columns: 1fr 300px;
+                gap: 2rem;
+                padding: 2rem;
+                height: 100vh;
+            }
+            
+            main {
+                overflow: hidden;
+                border-radius: 1rem;
+                background: rgba(31, 41, 55, 0.4);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(75, 85, 99, 0.3);
+            }
+            
+            .desktop-sidebar {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .desktop-nav {
+                background: rgba(31, 41, 55, 0.4);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(75, 85, 99, 0.3);
+                border-radius: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .desktop-nav h2 {
+                color: #f9fafb;
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                text-align: center;
+            }
+            
+            .desktop-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+                border-radius: 0.5rem;
+                color: #9ca3af;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                margin-bottom: 0.5rem;
+            }
+            
+            .desktop-nav-item:hover {
+                background: rgba(55, 65, 81, 0.5);
+                color: #e5e7eb;
+            }
+            
+            .desktop-nav-item.active {
+                background: rgba(16, 185, 129, 0.2);
+                color: #10b981;
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+            }
+            
+            .desktop-info {
+                background: rgba(31, 41, 55, 0.4);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(75, 85, 99, 0.3);
+                border-radius: 1rem;
+                padding: 1.5rem;
+                flex-grow: 1;
+            }
+            
+            .desktop-info h3 {
+                color: #f9fafb;
+                font-size: 1.125rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+            }
+            
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+            }
+            
+            .stat-item:last-child {
+                border-bottom: none;
+            }
+            
+            .stat-label {
+                color: #9ca3af;
+                font-size: 0.875rem;
+            }
+            
+            .stat-value {
+                color: #f9fafb;
+                font-weight: 600;
+            }
+            
+            /* Hide mobile navigation on desktop */
+            nav {
+                display: none;
+            }
+            
+            /* Adjust main content grid for desktop */
+            #movie-results, #tv-results {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+            
+            /* Search inputs full width on desktop */
+            #movie-search, #tv-search {
+                font-size: 1rem;
+                padding: 1rem;
+            }
+            
+            /* Better spacing for desktop calendar */
+            #sonarr-calendar {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1rem;
+            }
+            
+            /* Desktop settings layout */
+            #settings-page .space-y-4 {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+            
+            #settings-page h3 {
+                grid-column: 1 / -1;
+                margin-bottom: 0;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900-gradient text-gray-200 h-full">
@@ -233,6 +373,45 @@
                 </div>
             </div>
         </main>
+
+        <!-- Desktop Sidebar (hidden on mobile) -->
+        <div class="desktop-sidebar hidden md:flex">
+            <div class="desktop-nav">
+                <h2>Media Hub</h2>
+                <div class="desktop-nav-item" data-page="movies-page">
+                    <i data-lucide="film"></i>
+                    <span>Movies</span>
+                </div>
+                <div class="desktop-nav-item" data-page="tv-page">
+                    <i data-lucide="tv"></i>
+                    <span>TV Shows</span>
+                </div>
+                <div class="desktop-nav-item" data-page="downloads-page">
+                    <i data-lucide="arrow-down-to-line"></i>
+                    <span>Downloads</span>
+                </div>
+                <div class="desktop-nav-item" data-page="settings-page">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+            
+            <div class="desktop-info">
+                <h3>Quick Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" id="connection-status">Connected</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Default Page</span>
+                    <span class="stat-value" id="default-page-display">TV Shows</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Last Updated</span>
+                    <span class="stat-value" id="last-updated">Just now</span>
+                </div>
+            </div>
+        </div>
 
         <!-- Navigation Bar -->
         <nav class="flex justify-around bg-gray-800/50 backdrop-filter backdrop-blur-lg p-2 sticky bottom-0 border-t border-gray-700/50">
@@ -477,9 +656,15 @@
         const showPage = (pageId) => {
             pages.forEach(page => page.classList.remove('active'));
             navButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.desktop-nav-item').forEach(item => item.classList.remove('active'));
             
             document.getElementById(pageId).classList.add('active');
-            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+            const mobileBtn = document.querySelector(`nav [data-page="${pageId}"]`);
+            const desktopItem = document.querySelector(`.desktop-nav-item[data-page="${pageId}"]`);
+            
+            if (mobileBtn) mobileBtn.classList.add('active');
+            if (desktopItem) desktopItem.classList.add('active');
+            
             currentPage = pageId;
 
             if (pageId === 'tv-page') {
@@ -873,6 +1058,14 @@
         navButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const pageId = button.getAttribute('data-page');
+                showPage(pageId);
+            });
+        });
+
+        // Desktop navigation event listeners
+        document.querySelectorAll('.desktop-nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const pageId = item.getAttribute('data-page');
                 showPage(pageId);
             });
         });

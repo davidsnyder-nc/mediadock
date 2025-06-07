@@ -1515,14 +1515,21 @@
                     radarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 }
 
-                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}&sortKey=dateAdded&sortDirection=descending`);
+                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}`);
                 
                 if (response && response.length > 0) {
+                    // Sort by dateAdded (most recent first)
+                    const sortedMovies = response.sort((a, b) => {
+                        const dateA = new Date(a.added || a.dateAdded || 0);
+                        const dateB = new Date(b.added || b.dateAdded || 0);
+                        return dateB - dateA;
+                    });
+                    
                     // Calculate pagination
                     const startIndex = (page - 1) * 12;
                     const endIndex = startIndex + 12;
-                    const paginatedMovies = response.slice(startIndex, endIndex);
-                    const hasMoreMovies = endIndex < response.length;
+                    const paginatedMovies = sortedMovies.slice(startIndex, endIndex);
+                    const hasMoreMovies = endIndex < sortedMovies.length;
 
                     const moviesHtml = paginatedMovies.map(movie => {
                         const posterUrl = movie.images?.find(img => img.coverType === 'poster')?.remoteUrl || 'https://via.placeholder.com/300x450?text=No+Image';

@@ -726,7 +726,13 @@
                 showNotification(`${showData.name} added to Sonarr!`, 'success');
             } catch (error) {
                 console.error('Failed to add to Sonarr:', error);
-                showNotification('Failed to add show to Sonarr', 'error');
+                
+                // Check if it's a duplicate series error
+                if (error.message.includes('400') && error.message.includes('Bad Request')) {
+                    showNotification(`${showData.name} is already in your Sonarr library`, 'error');
+                } else {
+                    showNotification('Failed to add show to Sonarr', 'error');
+                }
             }
         };
 

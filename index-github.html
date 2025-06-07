@@ -313,18 +313,17 @@
                     <div id="movie-content-area" class="overflow-y-auto no-scrollbar flex-grow">
                         <div id="movie-search-header" class="mb-4"></div>
                         <div id="radarr-recent" class="space-y-4"></div>
-                        <div id="movie-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
-                            <!-- Default content when no search results -->
-                            <div id="movie-default-content" class="col-span-full text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
-                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19V5h14v14H5zm3-10h8v2H8V9zm0 3h8v2H8v-2zm0 3h5v2H8v-2z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-semibold text-white mb-2">Discover Movies</h3>
-                                    <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite movies above to explore details, watch trailers, and add them to your Radarr collection.</p>
-                                </div>
+                        <div id="movie-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 hidden"></div>
+                        <!-- Default content when no search results - only shown in search mode -->
+                        <div id="movie-default-content" class="text-center py-12 space-y-6 flex flex-col items-center justify-center min-h-[400px] hidden">
+                            <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19V5h14v14H5zm3-10h8v2H8V9zm0 3h8v2H8v-2zm0 3h5v2H8v-2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-white mb-2">Discover Movies</h3>
+                                <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite movies above to explore details, watch trailers, and add them to your Radarr collection.</p>
                             </div>
                         </div>
                     </div>
@@ -481,14 +480,14 @@
         
         // Configuration - Edit these values with your API keys and server details
         let userSettings = {
-            sonarrUrl: "http://your-server-ip:8989",
-            sonarrApi: "your-sonarr-api-key-here",
-            radarrUrl: "http://your-server-ip:7878", 
-            radarrApi: "your-radarr-api-key-here",
-            sabnzbdUrl: "http://your-server-ip:8080",
-            sabnzbdApi: "your-sabnzbd-api-key-here",
-            tmdbApi: "your-tmdb-api-key-here",
-            geminiApi: "your-gemini-api-key-here",
+            sonarrUrl: "http://192.168.1.20:8989",
+            sonarrApi: "d5c8a95b50ca4eb6ac7c34d64a1b5069",
+            radarrUrl: "http://192.168.1.20:7878", 
+            radarrApi: "ac1e729c49c84c3096f30eea6791707f",
+            sabnzbdUrl: "http://192.168.1.20:8080",
+            sabnzbdApi: "55af5171b46143b1872ed07b622262df",
+            tmdbApi: "607da9c4fc03dd0c28b2098e855c73db",
+            geminiApi: "AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg",
             defaultPage: "tv-page"
         };
 
@@ -1518,12 +1517,15 @@
                 const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}`);
                 
                 if (response && response.length > 0) {
-                    // Sort by dateAdded (most recent first)
-                    const sortedMovies = response.sort((a, b) => {
-                        const dateA = new Date(a.added || a.dateAdded || 0);
-                        const dateB = new Date(b.added || b.dateAdded || 0);
-                        return dateB - dateA;
-                    });
+                    // Sort by actual download date (most recent first)
+                    const sortedMovies = response
+                        .filter(movie => movie.hasFile) // Only show downloaded movies
+                        .sort((a, b) => {
+                            // Use movieFile.dateAdded for actual download date
+                            const dateA = new Date(a.movieFile?.dateAdded || a.added || 0);
+                            const dateB = new Date(b.movieFile?.dateAdded || b.added || 0);
+                            return dateB - dateA;
+                        });
                     
                     // Calculate pagination
                     const startIndex = (page - 1) * 12;
@@ -1628,15 +1630,13 @@
                 resultsContainer?.classList.add('hidden');
                 resultsContainer?.classList.remove('grid');
                 
-                // Clear search results and headers - ensure default content is preserved only in results container
+                // Clear search results and headers, hide default content
                 if (resultsContainer) {
-                    const defaultContent = document.getElementById('movie-default-content');
-                    if (defaultContent) {
-                        resultsContainer.innerHTML = defaultContent.outerHTML;
-                        defaultContent.style.display = 'none';
-                    } else {
-                        resultsContainer.innerHTML = '';
-                    }
+                    resultsContainer.innerHTML = '';
+                }
+                const defaultContent = document.getElementById('movie-default-content');
+                if (defaultContent) {
+                    defaultContent.classList.add('hidden');
                 }
                 movieSearchHeader.innerHTML = '';
                 
@@ -1667,7 +1667,9 @@
                 const searchInput = document.getElementById('movie-search');
                 const defaultContent = document.getElementById('movie-default-content');
                 if (defaultContent && (!searchInput || !searchInput.value.trim())) {
-                    defaultContent.style.display = 'block';
+                    defaultContent.classList.remove('hidden');
+                } else if (defaultContent) {
+                    defaultContent.classList.add('hidden');
                 }
             }
         };

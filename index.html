@@ -855,9 +855,11 @@
         });
 
         // --- Initialize App ---
-        loadSettings();
-        showPage(userSettings.defaultPage || defaultSettings.defaultPage);
-        lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            showPage(userSettings.defaultPage || defaultSettings.defaultPage);
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>

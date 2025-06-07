@@ -159,7 +159,24 @@
                     </div>
                     <div class="overflow-y-auto no-scrollbar flex-grow">
                         <div id="movie-results" class="grid grid-cols-1 gap-4">
-                            <!-- Movie results will be injected here -->
+                            <!-- Default content when no search results -->
+                            <div id="movie-default-content" class="text-center py-12 space-y-6">
+                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M4 3a2 2 0 00-2 2v1.816a.5.5 0 00.316.464l5.978 2.39a.5.5 0 00.316 0l5.978-2.39A.5.5 0 0015 6.816V5a2 2 0 00-2-2H4zM2 8.616V15a2 2 0 002 2h12a2 2 0 002-2V8.616l-5.978 2.39a2.5 2.5 0 01-1.956 0L2 8.616z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">Discover Movies</h3>
+                                    <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite movies above to explore details, watch trailers, and add them to your Radarr collection.</p>
+                                </div>
+                                <div class="flex flex-wrap justify-center gap-2 text-xs">
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Search by title</span>
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">View ratings</span>
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Watch trailers</span>
+                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Add to collection</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -467,12 +484,23 @@
 
         // --- Search Functions ---
         const searchMovies = async (query) => {
-            if (!query.trim() || !userSettings.tmdbApi) {
-                movieResultsContainer.innerHTML = userSettings.tmdbApi ? '' : '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
+            const defaultContent = document.getElementById('movie-default-content');
+            
+            if (!query.trim()) {
+                // Show default content when search is empty
+                if (defaultContent) defaultContent.style.display = 'block';
+                movieResultsContainer.innerHTML = movieResultsContainer.innerHTML.includes('movie-default-content') ? movieResultsContainer.innerHTML : '';
+                return;
+            }
+            
+            if (!userSettings.tmdbApi) {
+                if (defaultContent) defaultContent.style.display = 'none';
+                movieResultsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please set your TMDB API key in settings</p>';
                 return;
             }
 
             try {
+                if (defaultContent) defaultContent.style.display = 'none';
                 movieResultsContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 
                 const data = await makeApiRequest(`https://api.themoviedb.org/3/search/movie?api_key=${userSettings.tmdbApi}&query=${encodeURIComponent(query)}`);

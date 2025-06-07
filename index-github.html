@@ -1514,7 +1514,7 @@
         });
 
         // Auto-clear movie search field when clicked if it has content
-        movieSearchInput.addEventListener('focus', (e) => {
+        movieSearchInput.addEventListener('click', (e) => {
             if (e.target.value.trim()) {
                 e.target.value = '';
                 // Clear current results and show default content
@@ -1539,7 +1539,7 @@
         });
 
         // Auto-clear TV search field when clicked if it has content
-        tvSearchInput.addEventListener('focus', (e) => {
+        tvSearchInput.addEventListener('click', (e) => {
             if (e.target.value.trim()) {
                 e.target.value = '';
                 // Clear current results and show default content

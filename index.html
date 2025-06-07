@@ -23,18 +23,12 @@
             color: #e0f2fe; /* Light blue for active icon */
             transform: translateY(-3px);
         }
-        .nav-button.active .nav-dot {
-            opacity: 1;
+        .nav-button.active i {
+            color: #38bdf8;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
         }
-        .nav-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #38bdf8; /* Sky blue dot */
-            border-radius: 50%;
-            position: absolute;
-            bottom: 4px;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
+        .nav-button i {
+            transition: all 0.3s ease;
         }
         .page { display: none; }
         .page.active { display: flex; flex-direction: column; height: 100%; }
@@ -170,12 +164,7 @@
                                     <h3 class="text-xl font-semibold text-white mb-2">Discover Movies</h3>
                                     <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite movies above to explore details, watch trailers, and add them to your Radarr collection.</p>
                                 </div>
-                                <div class="flex flex-wrap justify-center gap-2 text-xs">
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Search by title</span>
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">View ratings</span>
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Watch trailers</span>
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Add to collection</span>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -207,12 +196,7 @@
                                     <h3 class="text-xl font-semibold text-white mb-2">Discover TV Shows</h3>
                                     <p class="text-gray-400 text-sm max-w-md mx-auto">Search for your favorite TV series above to explore episodes, watch trailers, and add them to your Sonarr collection.</p>
                                 </div>
-                                <div class="flex flex-wrap justify-center gap-2 text-xs">
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Find series</span>
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Episode tracking</span>
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Season management</span>
-                                    <span class="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full">Auto downloads</span>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -254,16 +238,16 @@
         <!-- Navigation Bar -->
         <nav class="flex justify-around bg-gray-800/50 backdrop-filter backdrop-blur-lg p-2 sticky bottom-0 border-t border-gray-700/50">
             <button data-page="movies-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
-                <i data-lucide="film"></i><span class="text-xs mt-1">Movies</span><div class="nav-dot"></div>
+                <i data-lucide="film"></i><span class="text-xs mt-1">Movies</span>
             </button>
             <button data-page="tv-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
-                <i data-lucide="tv"></i><span class="text-xs mt-1">TV</span><div class="nav-dot"></div>
+                <i data-lucide="tv"></i><span class="text-xs mt-1">TV</span>
             </button>
             <button data-page="downloads-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
-                <i data-lucide="arrow-down-to-line"></i><span class="text-xs mt-1">Downloads</span><div class="nav-dot"></div>
+                <i data-lucide="arrow-down-to-line"></i><span class="text-xs mt-1">Downloads</span>
             </button>
             <button data-page="settings-page" class="nav-button relative flex-1 flex flex-col items-center p-2 rounded-lg">
-                <i data-lucide="settings"></i><span class="text-xs mt-1">Settings</span><div class="nav-dot"></div>
+                <i data-lucide="settings"></i><span class="text-xs mt-1">Settings</span>
             </button>
         </nav>
         

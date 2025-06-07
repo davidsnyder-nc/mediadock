@@ -247,13 +247,7 @@
                 }
             }
             
-            /* Fix save button size on desktop */
-            #save-settings {
-                max-width: 150px;
-                margin: 0 auto;
-                padding: 0.5rem 1rem;
-                font-size: 0.875rem;
-            }
+
             
             /* Adjust main content grid for desktop */
             #movie-results, #tv-results {
@@ -280,15 +274,20 @@
             }
             
             /* Desktop settings layout */
-            #settings-page .space-y-4 {
+            #settings-page .space-y-3 {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 1.5rem;
             }
             
-            #settings-page h3 {
-                grid-column: 1 / -1;
-                margin-bottom: 0;
+            /* Keep save button normal size and outside grid */
+            #save-settings {
+                width: auto !important;
+                max-width: 200px !important;
+                margin: 1rem auto 0 auto !important;
+                padding: 0.75rem 1.5rem !important;
+                font-size: 0.875rem !important;
+                display: block !important;
             }
         }
     </style>

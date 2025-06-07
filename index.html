@@ -685,8 +685,17 @@
             }
 
             try {
-                // Get TV show details from TMDB
-                const showData = await makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${userSettings.tmdbApi}`);
+                // Get TV show details from TMDB and external IDs
+                const [showData, externalIds] = await Promise.all([
+                    makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${userSettings.tmdbApi}`),
+                    makeApiRequest(`https://api.themoviedb.org/3/tv/${tmdbId}/external_ids?api_key=${userSettings.tmdbApi}`)
+                ]);
+                
+                // Check if we have a valid TVDB ID
+                if (!externalIds.tvdb_id) {
+                    showNotification('This show is missing TVDB ID and cannot be added to Sonarr', 'error');
+                    return;
+                }
                 
                 // Get Sonarr root folders and quality profiles
                 const [rootFolders, qualityProfiles] = await Promise.all([
@@ -703,7 +712,7 @@
                     title: showData.name,
                     qualityProfileId: qualityProfileId,
                     monitored: true,
-                    tvdbId: 0, // Would need additional API call to get TVDB ID
+                    tvdbId: externalIds.tvdb_id,
                     rootFolderPath: rootFolderPath,
                     addOptions: { searchForMissingEpisodes: true }
                 };

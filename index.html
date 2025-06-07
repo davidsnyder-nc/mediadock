@@ -240,16 +240,19 @@
                 font-weight: 600;
             }
             
-            /* Hide mobile navigation on desktop */
-            nav {
-                display: none;
+            /* Hide mobile navigation on desktop only */
+            @media (min-width: 768px) {
+                nav.md\:hidden {
+                    display: none !important;
+                }
             }
             
             /* Fix save button size on desktop */
             #save-settings {
-                max-width: 200px;
+                max-width: 150px;
                 margin: 0 auto;
-                padding: 0.75rem 1.5rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
             }
             
             /* Adjust main content grid for desktop */
@@ -264,11 +267,9 @@
                 padding: 1rem;
             }
             
-            /* Better spacing for desktop calendar */
+            /* Better spacing for desktop calendar - single column to avoid gaps */
             #sonarr-calendar {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                gap: 1rem;
+                display: block;
             }
             
             /* Desktop settings layout */

@@ -1515,7 +1515,7 @@
                     radarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
                 }
 
-                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}&sortKey=added&sortDirection=descending`);
+                const response = await makeApiRequest(`${userSettings.radarrUrl}/api/v3/movie?apikey=${userSettings.radarrApi}&sortKey=dateAdded&sortDirection=descending`);
                 
                 if (response && response.length > 0) {
                     // Calculate pagination
@@ -1535,7 +1535,7 @@
                                 <div class="card">
                                     <div class="card-front">
                                         <img src="${posterUrl}" alt="${movie.title}" class="w-full h-full object-cover rounded-lg">
-                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-3">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3">
                                             <h3 class="text-white text-sm font-semibold truncate">${movie.title}</h3>
                                             <p class="text-gray-300 text-xs">${year} • <span class="${statusColor}">${status}</span></p>
                                         </div>
@@ -1621,9 +1621,15 @@
                 resultsContainer?.classList.add('hidden');
                 resultsContainer?.classList.remove('grid');
                 
-                // Clear search results and headers
+                // Clear search results and headers - ensure default content is preserved only in results container
                 if (resultsContainer) {
-                    resultsContainer.innerHTML = resultsContainer.innerHTML.includes('movie-default-content') ? resultsContainer.innerHTML : '';
+                    const defaultContent = document.getElementById('movie-default-content');
+                    if (defaultContent) {
+                        resultsContainer.innerHTML = defaultContent.outerHTML;
+                        defaultContent.style.display = 'none';
+                    } else {
+                        resultsContainer.innerHTML = '';
+                    }
                 }
                 movieSearchHeader.innerHTML = '';
                 

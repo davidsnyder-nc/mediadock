@@ -1513,9 +1513,52 @@
             searchTimeout = setTimeout(() => searchMovies(e.target.value), 300);
         });
 
+        // Auto-clear movie search field when clicked if it has content
+        movieSearchInput.addEventListener('focus', (e) => {
+            if (e.target.value.trim()) {
+                e.target.value = '';
+                // Clear current results and show default content
+                currentMovieQuery = '';
+                moviePage = 1;
+                isMovieActorSearch = false;
+                const defaultContent = document.getElementById('movie-default-content');
+                const movieSearchHeader = document.getElementById('movie-search-header');
+                const movieResultsContainer = document.getElementById('movie-results');
+                
+                if (defaultContent) defaultContent.style.display = 'block';
+                if (movieSearchHeader) movieSearchHeader.innerHTML = '';
+                if (movieResultsContainer) {
+                    movieResultsContainer.innerHTML = movieResultsContainer.innerHTML.includes('movie-default-content') ? movieResultsContainer.innerHTML : '';
+                }
+            }
+        });
+
         tvSearchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => searchTvShows(e.target.value), 300);
+        });
+
+        // Auto-clear TV search field when clicked if it has content
+        tvSearchInput.addEventListener('focus', (e) => {
+            if (e.target.value.trim()) {
+                e.target.value = '';
+                // Clear current results and show default content
+                currentTvQuery = '';
+                tvPage = 1;
+                isTvActorSearch = false;
+                const defaultContent = document.getElementById('tv-default-content');
+                const tvSearchHeader = document.getElementById('tv-search-header');
+                const tvResultsContainer = document.getElementById('tv-results');
+                
+                if (defaultContent) defaultContent.style.display = 'block';
+                if (tvSearchHeader) {
+                    tvSearchHeader.innerHTML = '';
+                    tvSearchHeader.classList.add('hidden');
+                }
+                if (tvResultsContainer) {
+                    tvResultsContainer.innerHTML = tvResultsContainer.innerHTML.includes('tv-default-content') ? tvResultsContainer.innerHTML : '';
+                }
+            }
         });
 
         tvCalendarBtn.addEventListener('click', () => toggleTvView('calendar'));

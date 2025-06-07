@@ -439,6 +439,10 @@
                     <span class="stat-value" id="movies-count">Loading...</span>
                 </div>
                 <div class="stat-item">
+                    <span class="stat-label">TV Series</span>
+                    <span class="stat-value" id="tv-series-count">Loading...</span>
+                </div>
+                <div class="stat-item">
                     <span class="stat-label">Last Updated</span>
                     <span class="stat-value" id="last-updated">Just now</span>
                 </div>
@@ -1717,7 +1721,27 @@
                         const loadMoreButton = existingGrid.querySelector('.col-span-full');
                         if (loadMoreButton) loadMoreButton.remove();
                         
-                        existingGrid.innerHTML += seriesHtml + loadMoreHtml;
+                        // Create temporary container to parse new HTML
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = seriesHtml;
+                        
+                        // Append each new series card to the grid
+                        const newCards = tempDiv.children;
+                        for (let card of newCards) {
+                            existingGrid.appendChild(card);
+                        }
+                        
+                        // Add load more button if needed
+                        if (hasMoreSeries) {
+                            const loadMoreDiv = document.createElement('div');
+                            loadMoreDiv.className = 'col-span-full flex justify-center mt-6';
+                            loadMoreDiv.innerHTML = `
+                                <button onclick="loadMoreRecentTvShows()" class="btn-primary px-6 py-2 rounded-lg">
+                                    Load More TV Shows
+                                </button>
+                            `;
+                            existingGrid.appendChild(loadMoreDiv);
+                        }
                     }
 
                     // Generate witty descriptions for TV shows if enabled
@@ -1771,6 +1795,29 @@
             } catch (error) {
                 console.error('Error loading Radarr movie count:', error);
                 moviesCountElement.textContent = 'Error';
+            }
+        };
+
+        // --- Load Sonarr TV Series Count for Quick Stats ---
+        const loadSonarrSeriesCount = async () => {
+            const tvSeriesCountElement = document.getElementById('tv-series-count');
+            
+            if (!userSettings.sonarrUrl || !userSettings.sonarrApi) {
+                tvSeriesCountElement.textContent = 'N/A';
+                return;
+            }
+
+            try {
+                const response = await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`);
+                
+                if (response && Array.isArray(response)) {
+                    tvSeriesCountElement.textContent = response.length;
+                } else {
+                    tvSeriesCountElement.textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading Sonarr series count:', error);
+                tvSeriesCountElement.textContent = 'Error';
             }
         };
 
@@ -2155,6 +2202,7 @@
             loadSettings();
             showPage(userSettings.defaultPage || 'tv-page');
             loadRadarrMovieCount();
+            loadSonarrSeriesCount();
             lucide.createIcons();
         });
     </script>

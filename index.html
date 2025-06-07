@@ -549,26 +549,56 @@
             
             console.log('Loading settings:', userSettings);
             
-            // Check if elements exist before setting values
-            const sonarrUrl = document.getElementById('sonarr-url');
-            const sonarrApi = document.getElementById('sonarr-api');
-            const radarrUrl = document.getElementById('radarr-url');
-            const radarrApi = document.getElementById('radarr-api');
-            const sabnzbdUrl = document.getElementById('sabnzbd-url');
-            const sabnzbdApi = document.getElementById('sabnzbd-api');
-            const tmdbApi = document.getElementById('tmdb-api');
-            const geminiApi = document.getElementById('gemini-api');
-            const defaultPage = document.getElementById('default-page');
-            
-            if (sonarrUrl) sonarrUrl.value = userSettings.sonarrUrl;
-            if (sonarrApi) sonarrApi.value = userSettings.sonarrApi;
-            if (radarrUrl) radarrUrl.value = userSettings.radarrUrl;
-            if (radarrApi) radarrApi.value = userSettings.radarrApi;
-            if (sabnzbdUrl) sabnzbdUrl.value = userSettings.sabnzbdUrl;
-            if (sabnzbdApi) sabnzbdApi.value = userSettings.sabnzbdApi;
-            if (tmdbApi) tmdbApi.value = userSettings.tmdbApi;
-            if (geminiApi) geminiApi.value = userSettings.geminiApi;
-            if (defaultPage) defaultPage.value = userSettings.defaultPage;
+            // Use setTimeout to ensure DOM is ready for Safari
+            setTimeout(() => {
+                // Check if elements exist before setting values
+                const sonarrUrl = document.getElementById('sonarr-url');
+                const sonarrApi = document.getElementById('sonarr-api');
+                const radarrUrl = document.getElementById('radarr-url');
+                const radarrApi = document.getElementById('radarr-api');
+                const sabnzbdUrl = document.getElementById('sabnzbd-url');
+                const sabnzbdApi = document.getElementById('sabnzbd-api');
+                const tmdbApi = document.getElementById('tmdb-api');
+                const geminiApi = document.getElementById('gemini-api');
+                const defaultPage = document.getElementById('default-page');
+                
+                // Clear placeholder and set value for Safari compatibility
+                if (sonarrUrl) {
+                    sonarrUrl.placeholder = '';
+                    sonarrUrl.value = userSettings.sonarrUrl || '';
+                }
+                if (sonarrApi) {
+                    sonarrApi.placeholder = '';
+                    sonarrApi.value = userSettings.sonarrApi || '';
+                }
+                if (radarrUrl) {
+                    radarrUrl.placeholder = '';
+                    radarrUrl.value = userSettings.radarrUrl || '';
+                }
+                if (radarrApi) {
+                    radarrApi.placeholder = '';
+                    radarrApi.value = userSettings.radarrApi || '';
+                }
+                if (sabnzbdUrl) {
+                    sabnzbdUrl.placeholder = '';
+                    sabnzbdUrl.value = userSettings.sabnzbdUrl || '';
+                }
+                if (sabnzbdApi) {
+                    sabnzbdApi.placeholder = '';
+                    sabnzbdApi.value = userSettings.sabnzbdApi || '';
+                }
+                if (tmdbApi) {
+                    tmdbApi.placeholder = '';
+                    tmdbApi.value = userSettings.tmdbApi || '';
+                }
+                if (geminiApi) {
+                    geminiApi.placeholder = '';
+                    geminiApi.value = userSettings.geminiApi || '';
+                }
+                if (defaultPage) {
+                    defaultPage.value = userSettings.defaultPage || 'tv-page';
+                }
+            }, 100);
         };
 
         // --- Card Creation ---

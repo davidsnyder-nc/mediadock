@@ -459,18 +459,6 @@
         // --- App State & Config ---
         let currentPage = 'movies-page';
         let searchTimeout;
-        const SETTINGS_KEY = 'mediaDockSettings';
-        const defaultSettings = {
-            sonarrUrl: 'http://192.168.1.20:8989', 
-            sonarrApi: 'd5c8a95b50ca4eb6ac7c34d64a1b5069',
-            radarrUrl: 'http://192.168.1.20:7878', 
-            radarrApi: 'ac1e729c49c84c3096f30eea6791707f',
-            sabnzbdUrl: 'http://192.168.1.20:8080', 
-            sabnzbdApi: '55af5171b46143b1872ed07b622262df',
-            tmdbApi: '607da9c4fc03dd0c28b2098e855c73db', 
-            geminiApi: 'AIzaSyBFycr-cXkRD9MOtSpGjpAqFTLGSpT_ZEg', 
-            defaultPage: 'tv-page'
-        };
         let userSettings = {};
 
         // --- UI Elements ---
@@ -520,7 +508,7 @@
             }
         };
 
-        const saveSettings = () => {
+        const saveSettings = async () => {
             const settings = {
                 sonarrUrl: document.getElementById('sonarr-url').value,
                 sonarrApi: document.getElementById('sonarr-api').value,
@@ -532,22 +520,41 @@
                 geminiApi: document.getElementById('gemini-api').value,
                 defaultPage: document.getElementById('default-page').value
             };
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-            userSettings = settings;
-            showNotification('Settings saved successfully!', 'success');
+            
+            try {
+                const response = await fetch('/save-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(settings)
+                });
+                
+                if (response.ok) {
+                    userSettings = settings;
+                    showNotification('Settings saved to config.json successfully!', 'success');
+                } else {
+                    showNotification('Failed to save settings to config file', 'error');
+                }
+            } catch (error) {
+                showNotification('Error saving settings to config file', 'error');
+            }
         };
 
-        const loadSettings = () => {
-            const stored = localStorage.getItem(SETTINGS_KEY);
-            const storedSettings = stored ? JSON.parse(stored) : {};
-            
-            // For each setting, use stored value only if it's not empty, otherwise use default
-            userSettings = {};
-            Object.keys(defaultSettings).forEach(key => {
-                userSettings[key] = (storedSettings[key] && storedSettings[key].trim() !== '') ? storedSettings[key] : defaultSettings[key];
-            });
-            
-            console.log('Loading settings:', userSettings);
+        const loadSettings = async () => {
+            try {
+                const response = await fetch('/config.json');
+                if (response.ok) {
+                    userSettings = await response.json();
+                    console.log('Loading settings from config.json:', userSettings);
+                } else {
+                    throw new Error('Config file not found');
+                }
+            } catch (error) {
+                console.error('Failed to load config.json:', error);
+                showNotification('Please create config.json from config.example.json', 'error');
+                userSettings = {};
+            }
         };
 
         const populateSettingsFields = () => {
@@ -566,9 +573,8 @@
             // Set values for each input
             Object.entries(inputs).forEach(([id, value]) => {
                 const element = document.getElementById(id);
-                if (element && value && value !== defaultSettings[id.replace('-', '').replace('url', 'Url').replace('api', 'Api')]) {
+                if (element && value) {
                     element.value = value;
-                    // Remove placeholder when we have a real value
                     element.removeAttribute('placeholder');
                 }
             });
@@ -1180,9 +1186,9 @@
         });
 
         // --- Initialize App ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSettings();
-            showPage(userSettings.defaultPage || defaultSettings.defaultPage);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadSettings();
+            showPage(userSettings.defaultPage || 'tv-page');
             lucide.createIcons();
         });
     </script>

@@ -1,0 +1,11 @@
+{
+  "sonarrUrl": "http://your-server-ip:8989",
+  "sonarrApi": "your-sonarr-api-key-here",
+  "radarrUrl": "http://your-server-ip:7878",
+  "radarrApi": "your-radarr-api-key-here",
+  "sabnzbdUrl": "http://your-server-ip:8080",
+  "sabnzbdApi": "your-sabnzbd-api-key-here",
+  "tmdbApi": "your-tmdb-api-key-here",
+  "geminiApi": "your-gemini-api-key-here",
+  "defaultPage": "tv-page"
+}

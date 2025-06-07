@@ -1174,10 +1174,13 @@
                 ]);
 
                 if (calendarData && calendarData.length > 0) {
-                    // Create a map of series ID to series title for quick lookup
+                    // Create a map of series ID to series info for quick lookup
                     const seriesMap = {};
                     seriesData.forEach(series => {
-                        seriesMap[series.id] = series.title;
+                        seriesMap[series.id] = {
+                            title: series.title,
+                            poster: series.images?.find(img => img.coverType === 'poster')?.remoteUrl || series.images?.find(img => img.coverType === 'poster')?.url
+                        };
                     });
 
                     // Group episodes by day
@@ -1215,21 +1218,39 @@
                         `;
                         
                         episodesByDay[dateStr].forEach(episode => {
-                            const seriesTitle = seriesMap[episode.seriesId] || 'Unknown Series';
+                            const seriesInfo = seriesMap[episode.seriesId] || { title: 'Unknown Series', poster: null };
+                            const seriesTitle = seriesInfo.title;
+                            const posterUrl = seriesInfo.poster;
                             const airTime = new Date(episode.airDate || episode.airDateUtc).toLocaleTimeString('en-US', { 
                                 hour: 'numeric', 
                                 minute: '2-digit',
                                 hour12: true 
                             });
                             
+                            // Only show posters on desktop (not mobile)
+                            const posterHtml = !isMobile() && posterUrl ? `
+                                <div class="flex-shrink-0 w-12 h-16 mr-3">
+                                    <img src="${posterUrl}" 
+                                         alt="${seriesTitle}" 
+                                         class="w-full h-full object-cover rounded border border-gray-600"
+                                         loading="lazy"
+                                         onerror="this.style.display='none'">
+                                </div>
+                            ` : '';
+                            
                             calendarHtml += `
                                 <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <h5 class="text-white font-medium text-sm">${seriesTitle}</h5>
-                                        <span class="text-gray-400 text-xs">${airTime}</span>
+                                    <div class="flex items-start">
+                                        ${posterHtml}
+                                        <div class="flex-grow min-w-0">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <h5 class="text-white font-medium text-sm truncate pr-2">${seriesTitle}</h5>
+                                                <span class="text-gray-400 text-xs flex-shrink-0">${airTime}</span>
+                                            </div>
+                                            <p class="text-gray-300 text-xs mb-1">S${episode.seasonNumber?.toString().padStart(2, '0')}E${episode.episodeNumber?.toString().padStart(2, '0')}</p>
+                                            <p class="text-gray-400 text-xs truncate">${episode.title || 'Episode'}</p>
+                                        </div>
                                     </div>
-                                    <p class="text-gray-300 text-xs mb-1">S${episode.seasonNumber?.toString().padStart(2, '0')}E${episode.episodeNumber?.toString().padStart(2, '0')}</p>
-                                    <p class="text-gray-400 text-xs">${episode.title || 'Episode'}</p>
                                 </div>
                             `;
                         });

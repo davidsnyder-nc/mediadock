@@ -2146,6 +2146,95 @@
             }
         };
 
+        // --- TV Toggle Function ---
+        const toggleTvView = (view) => {
+            const recentBtn = document.getElementById('tv-recent-btn');
+            const calendarBtn = document.getElementById('tv-calendar-btn');
+            const searchBtn = document.getElementById('tv-search-btn');
+            const searchContainer = document.getElementById('tv-search-container');
+            const recentContainer = document.getElementById('sonarr-recent');
+            const calendarContainer = document.getElementById('sonarr-calendar');
+            const resultsContainer = document.getElementById('tv-results');
+            const tvSearchHeader = document.getElementById('tv-search-header');
+
+            // Remove active class from all buttons
+            recentBtn?.classList.remove('active');
+            calendarBtn?.classList.remove('active');
+            searchBtn?.classList.remove('active');
+
+            // Hide all containers
+            searchContainer?.classList.add('hidden');
+            recentContainer?.classList.add('hidden');
+            calendarContainer?.classList.add('hidden');
+            resultsContainer?.classList.add('hidden');
+
+            if (view === 'recent') {
+                recentBtn?.classList.add('active');
+                recentContainer?.classList.remove('hidden');
+                
+                // Clear search input and results
+                const searchInput = document.getElementById('tv-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                
+                // Reset search state
+                currentTvQuery = '';
+                tvPage = 1;
+                recentTvPage = 1;
+                
+                loadSonarrRecent();
+            } else if (view === 'calendar') {
+                calendarBtn?.classList.add('active');
+                calendarContainer?.classList.remove('hidden');
+                
+                // Clear other content areas
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = '';
+                }
+                if (recentContainer) {
+                    recentContainer.innerHTML = '';
+                }
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
+                
+                // Clear search input
+                const searchInput = document.getElementById('tv-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                
+                // Reset search state
+                currentTvQuery = '';
+                tvPage = 1;
+                
+                loadSonarrCalendar();
+            } else { // search
+                searchBtn?.classList.add('active');
+                searchContainer?.classList.remove('hidden');
+                resultsContainer?.classList.remove('hidden');
+                
+                // Clear other content areas
+                if (recentContainer) {
+                    recentContainer.innerHTML = '';
+                }
+                if (calendarContainer) {
+                    calendarContainer.innerHTML = '';
+                }
+                tvSearchHeader.innerHTML = '';
+                tvSearchHeader.classList.add('hidden');
+                
+                // Show default content when switching to search tab with empty search
+                const searchInput = document.getElementById('tv-search');
+                const defaultContent = document.getElementById('tv-default-content');
+                if (defaultContent && (!searchInput || !searchInput.value.trim())) {
+                    defaultContent.style.display = 'block';
+                } else if (defaultContent) {
+                    defaultContent.style.display = 'none';
+                }
+            }
+        };
+
         // --- Event Listeners ---
         navButtons.forEach(button => {
             button.addEventListener('click', () => {

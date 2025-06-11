@@ -1992,8 +1992,208 @@
             radarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please configure Radarr settings first</p>';
         };
 
-        const loadSonarrRecent = async () => {
-            sonarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please configure Sonarr settings first</p>';
+        const loadSonarrRecent = async (page = 1) => {
+            const sonarrRecentContainer = document.getElementById('sonarr-recent');
+            
+            if (!userSettings.sonarrUrl || !userSettings.sonarrApi) {
+                sonarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">Please configure Sonarr settings</p>';
+                return;
+            }
+
+            try {
+                if (page === 1) {
+                    sonarrRecentContainer.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-4 border-gray-300 rounded-full w-8 h-8"></div></div>';
+                }
+
+                console.log('Loading Sonarr recent TV shows...');
+                
+                // Get recently downloaded episodes from Sonarr history
+                const historyResponse = await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/history?pageSize=200&sortKey=date&sortDirection=descending&eventType=1&apikey=${userSettings.sonarrApi}`);
+                
+                if (historyResponse && historyResponse.records && Array.isArray(historyResponse.records)) {
+                    console.log(`Found ${historyResponse.records.length} recent download records`);
+                    
+                    // Group episodes by series and get the most recent download date for each series
+                    const seriesDownloadDates = {};
+                    const recentEpisodeCounts = {};
+                    
+                    // Only consider downloads from the last 30 days
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                    
+                    historyResponse.records.forEach(record => {
+                        const downloadDate = new Date(record.date);
+                        if (downloadDate > thirtyDaysAgo && record.series) {
+                            const seriesId = record.series.id;
+                            
+                            // Track the most recent download date for this series
+                            if (!seriesDownloadDates[seriesId] || downloadDate > seriesDownloadDates[seriesId]) {
+                                seriesDownloadDates[seriesId] = downloadDate;
+                            }
+                            
+                            // Count recent episodes for this series
+                            recentEpisodeCounts[seriesId] = (recentEpisodeCounts[seriesId] || 0) + 1;
+                        }
+                    });
+                    
+                    console.log(`Found ${Object.keys(seriesDownloadDates).length} series with recent downloads`);
+                    
+                    // Get full series details for series with recent downloads
+                    const seriesResponse = await makeApiRequest(`${userSettings.sonarrUrl}/api/v3/series?apikey=${userSettings.sonarrApi}`);
+                    
+                    if (seriesResponse && Array.isArray(seriesResponse)) {
+                        // Create array of series with recent downloads
+                        const seriesWithRecentDownloads = seriesResponse
+                            .filter(series => seriesDownloadDates[series.id])
+                            .map(series => ({
+                                series: series,
+                                latestDownloadDate: seriesDownloadDates[series.id],
+                                recentEpisodeCount: recentEpisodeCounts[series.id],
+                                totalEpisodeCount: series.statistics ? series.statistics.episodeFileCount : 0
+                            }));
+
+                        // Sort by most recent download date
+                        const sortedSeries = seriesWithRecentDownloads
+                            .sort((a, b) => new Date(b.latestDownloadDate) - new Date(a.latestDownloadDate));
+                        
+                        console.log(`Found ${sortedSeries.length} unique series with recent downloads`);
+                        
+                        // Calculate pagination - show 20 items per page for better user experience
+                        const itemsPerPage = 20;
+                        const startIndex = (page - 1) * itemsPerPage;
+                        const endIndex = startIndex + itemsPerPage;
+                        const paginatedSeries = sortedSeries.slice(startIndex, endIndex);
+                        const hasMoreSeries = endIndex < sortedSeries.length;
+                        
+                        console.log(`Page ${page}: showing ${paginatedSeries.length} series (${startIndex}-${endIndex} of ${sortedSeries.length})`);
+                        console.log(`Has more series: ${hasMoreSeries}`);
+
+                        // Pre-fetch Gemini descriptions if enabled
+                        const tvDescriptions = {};
+                        if (userSettings.geminiEnabled) {
+                            await Promise.all(paginatedSeries.map(async (item) => {
+                                try {
+                                    const wittyDesc = await getWittyTvDescription(item.series.title, item.series.id, item.series.overview);
+                                    if (wittyDesc) {
+                                        tvDescriptions[item.series.id] = wittyDesc;
+                                    }
+                                } catch (error) {
+                                    console.log('Failed to pre-fetch description for', item.series.title);
+                                }
+                            }));
+                        }
+
+                        const seriesHtml = paginatedSeries.map(item => {
+                            const series = item.series;
+                            const posterUrl = series.images?.find(img => img.coverType === 'poster')?.remoteUrl || 'https://via.placeholder.com/300x450?text=No+Image';
+                            const year = series.year || 'Unknown';
+                            
+                            // Show recent episodes count and when it was last updated
+                            const recentText = item.recentEpisodeCount === 1 ? 
+                                '1 new episode' : 
+                                `${item.recentEpisodeCount} new episodes`;
+                            const daysSinceDownload = Math.floor((new Date() - item.latestDownloadDate) / (1000 * 60 * 60 * 24));
+                            const timeText = daysSinceDownload === 0 ? 'today' : 
+                                           daysSinceDownload === 1 ? 'yesterday' : 
+                                           `${daysSinceDownload} days ago`;
+                            
+                            const description = tvDescriptions[series.id] || series.overview || 'No description available';
+                        
+                            return `
+                                <div class="card-container w-full" onclick="flipCard(this, ${series.id})">
+                                    <div class="card">
+                                        <div class="card-face card-face-front">
+                                            <div class="bg-black/70 backdrop-blur-sm rounded p-2 mb-2">
+                                                <div class="flex items-center justify-between">
+                                                    <h3 class="text-white font-semibold text-sm truncate">${series.title}</h3>
+                                                    <span class="text-gray-300 text-xs ml-2 flex-shrink-0">${year}</span>
+                                                </div>
+                                                <p class="text-green-400 text-xs">${recentText}</p>
+                                                <p class="text-gray-400 text-xs">${timeText}</p>
+                                            </div>
+                                            <div class="card-image-container flex-1" style="background-image: url('${posterUrl}')">
+                                            </div>
+                                        </div>
+                                        <div class="card-face card-face-back">
+                                            <div class="card-back-image" style="background-image: url('${posterUrl}');"></div>
+                                            <div class="card-back-overlay">
+                                                <div class="text-center space-y-4">
+                                                    <h3 class="text-white font-bold text-lg">${series.title}</h3>
+                                                    <div class="flex items-center justify-center space-x-2">
+                                                        <span class="text-yellow-400 text-sm">★</span>
+                                                        <span class="text-white text-sm">${series.ratings?.value ? series.ratings.value.toFixed(1) : 'N/A'}</span>
+                                                    </div>
+                                                    <p class="text-gray-200 text-sm" id="tv-desc-${series.id}">${description}</p>
+                                                    <div class="flex flex-col space-y-2 w-full">
+                                                        <button onclick="event.stopPropagation(); watchTvTrailerBySeries('${series.title}', '${series.year || ''}')" class="action-btn text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                                            <i data-lucide="play" class="w-4 h-4 inline mr-1"></i>Watch Trailer
+                                                        </button>
+                                                        <div class="text-center text-xs text-gray-300">
+                                                            <span>${item.totalEpisodeCount} total episodes</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        if (paginatedSeries.length > 0) {
+                            if (page === 1) {
+                                sonarrRecentContainer.innerHTML = seriesHtml;
+                                
+                                // Show/hide load more button
+                                const loadMoreContainer = document.getElementById('tv-load-more-container');
+                                if (loadMoreContainer) {
+                                    if (hasMoreSeries) {
+                                        loadMoreContainer.classList.remove('hidden');
+                                        loadMoreContainer.innerHTML = `
+                                            <button onclick="loadSonarrRecent(${page + 1})" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                                                Load More
+                                            </button>
+                                        `;
+                                    } else {
+                                        loadMoreContainer.classList.add('hidden');
+                                    }
+                                }
+                            } else {
+                                // Append new content for pagination
+                                sonarrRecentContainer.innerHTML += seriesHtml;
+                                
+                                // Update load more button
+                                const loadMoreContainer = document.getElementById('tv-load-more-container');
+                                if (loadMoreContainer) {
+                                    if (hasMoreSeries) {
+                                        loadMoreContainer.innerHTML = `
+                                            <button onclick="loadSonarrRecent(${page + 1})" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                                                Load More
+                                            </button>
+                                        `;
+                                    } else {
+                                        loadMoreContainer.classList.add('hidden');
+                                    }
+                                }
+                            }
+                            
+                            // Store current page for future reference
+                            recentTvPage = page;
+                            
+                            lucide.createIcons();
+                        } else {
+                            sonarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No TV shows with recent downloads found</p>';
+                        }
+                    } else {
+                        sonarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No series found in Sonarr</p>';
+                    }
+                } else {
+                    sonarrRecentContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No recent downloads found in the last 30 days</p>';
+                }
+            } catch (error) {
+                console.error('Error loading Sonarr recent TV shows:', error);
+                sonarrRecentContainer.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load recent TV shows</p>';
+            }
         };
     </script>
 </body>

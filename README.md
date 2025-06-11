@@ -1,277 +1,197 @@
 # MediaDock
 
-A comprehensive media hub application designed for seamless media service integration across local networks, featuring intelligent interactions, card flip animations, and adaptive user interfaces.
+A comprehensive AI-powered media management hub that provides intelligent content discovery and management across multiple media services. MediaDock integrates with your existing media infrastructure to deliver personalized recommendations, streamlined content management, and an intuitive user experience.
 
-## Features
+## 🎯 Overview
 
-### Core Media Management
-- **Multi-service Integration**: Connects with Sonarr, Radarr, and SABnzbd for complete media management
-- **Recently Added Sections**: Dedicated sections for both movies and TV shows with automatic updates
-- **Quick Stats Panel**: Real-time display of total movies and TV series in your collection
-- **Smart Default Navigation**: TV Shows Calendar loads by default with intelligent tab switching
+MediaDock serves as a centralized dashboard for managing your media library, featuring advanced AI-powered recommendations, real-time content tracking, and seamless integration with popular media management tools. Built with a modern responsive design, it works perfectly on both desktop and mobile devices.
 
-### Enhanced User Interface
-- **Responsive Design**: Optimized layouts for both mobile (2-column grid) and desktop (3-column grid) with sidebar navigation
-- **Card Flip Animations**: Interactive movie/TV show cards with smooth flip transitions and persistent titles
-- **Adaptive Grid Layouts**: Consistent 2-column mobile grids across all sections for optimal touch experience
-- **Intelligent Search**: Enhanced movie and TV show search with TMDB integration and trailer support
+## ✨ Key Features
 
-### Advanced Features
-- **AI-Enhanced Descriptions**: Gemini AI integration for intelligent content descriptions and recommendations
-- **TV Shows Calendar**: Upcoming episodes grouped by day (Today, Tomorrow, weekdays) with air times
-- **Real-time Downloads**: SABnzbd download history and status monitoring
-- **Settings Management**: Streamlined settings interface with clear field descriptions and API key guidance
+### 🎬 Movies Management
+- **Recently Added Movies**: Browse your latest movie downloads with elegant card-based interface
+- **Movie Search**: Search and discover new movies using TMDB integration
+- **One-Click Adding**: Add movies directly to Radarr with automatic quality profile selection
+- **Trailer Integration**: Watch trailers directly from YouTube
+- **Card Flip Animation**: Interactive cards showing movie details, ratings, and actions
+- **Load More Pagination**: Efficient browsing with paginated results
 
-## Technologies Used
+### 📺 TV Shows Management
+- **Smart Calendar View**: See upcoming episodes with intelligent date labeling (Yesterday, Today, Tomorrow)
+- **Recently Added Shows**: Track your latest TV show downloads and episodes
+- **Episode Tracking**: View episode counts, download status, and air dates
+- **TV Show Search**: Discover and add new series to your library
+- **Sonarr Integration**: Seamless adding of shows with automatic monitoring
 
-- **Frontend**: HTML5, CSS3 (Tailwind CSS), Vanilla JavaScript
-- **APIs**: TMDB, Gemini AI, Sonarr, Radarr, SABnzbd
-- **Icons**: Lucide Icons
-- **Server**: Python HTTP Server (development)
+### 🤖 AI-Powered Recommendations
+- **Intelligent Analysis**: AI analyzes your existing library to suggest personalized content
+- **Mood-Based Search**: Describe what you're in the mood for and get tailored recommendations
+- **Dual Mode**: Separate recommendations for movies and TV shows
+- **Smart Reasoning**: Each recommendation includes AI-generated explanations
+- **Library-Aware**: Avoids suggesting content you already have
 
-## Screenshots
+### 🔄 Download Management
+- **SABnzbd Integration**: Monitor download history and status
+- **Real-Time Status**: Track completed, failed, and in-progress downloads
+- **Size and Date Tracking**: View download sizes and completion dates
+- **Quick Refresh**: One-click refresh of download history
 
-### Desktop View
-- Sidebar navigation with Quick Stats panel
-- Three-column grid layout for movies and TV shows
-- Responsive design that maximizes screen space
+### ⚙️ Advanced Settings
+- **API Configuration**: Manage all service connections in one place
+- **Gemini AI Toggle**: Enable/disable AI-powered descriptions and recommendations
+- **App Preferences**: Customize default pages and TV tabs
+- **Statistics Dashboard**: View library counts and statistics
+- **Reset Options**: Easy restoration to default settings
 
-### Mobile View
-- Bottom navigation bar
-- Single-column layout optimized for touch
-- Full-screen card interactions
+### 🎨 User Interface Features
+- **Responsive Design**: Optimized for both desktop and mobile experiences
+- **Desktop Sidebar**: Dedicated navigation sidebar for desktop users
+- **Mobile-First**: Touch-friendly interface with bottom navigation
+- **Blue Theme**: Modern blue color scheme replacing traditional green highlights
+- **Play Button Icons**: MediaDock branding with play button icons
+- **Card Animations**: Smooth flip animations revealing detailed information
+- **Loading States**: Elegant loading indicators for all async operations
 
-## Installation
+## 🔧 Technical Integrations
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/mediadock.git
-cd mediadock
-```
+### Supported Services
+- **Sonarr**: TV show management and monitoring
+- **Radarr**: Movie management and monitoring  
+- **SABnzbd**: Download client for Usenet
+- **TMDB**: Movie and TV show metadata and search
+- **Google Gemini AI**: Intelligent recommendations and witty descriptions
+- **YouTube**: Trailer playback integration
 
-2. Copy the GitHub template to create your working file:
-```bash
-cp index-github.html index.html
-```
+### AI Capabilities
+- **Gemini AI Integration**: Generates witty, personalized descriptions for movies and TV shows
+- **Smart Recommendations**: Analyzes viewing patterns and library contents
+- **Mood Understanding**: Interprets natural language mood queries
+- **Content Analysis**: Provides reasoning for each recommendation
 
-3. Edit the `userSettings` object in `index.html` (around line 530) with your API keys:
-```javascript
-let userSettings = {
-    sonarrUrl: "http://your-server-ip:8989",
-    sonarrApi: "your-sonarr-api-key-here",
-    radarrUrl: "http://your-server-ip:7878", 
-    radarrApi: "your-radarr-api-key-here",
-    sabnzbdUrl: "http://your-server-ip:8080",
-    sabnzbdApi: "your-sabnzbd-api-key-here",
-    tmdbApi: "your-tmdb-api-key-here",
-    geminiApi: "your-gemini-api-key-here",
-    defaultPage: "tv-page"
-};
-```
+## 🚀 Setup Instructions
 
-4. Start any basic HTTP server:
-```bash
-python -m http.server 5000
-# or any other static file server
-```
+### Prerequisites
+- Web server with HTML/JavaScript support
+- Active subscriptions/accounts for integrated services
+- API keys for external services
 
-5. Open your browser and navigate to `http://localhost:5000`
+### Required API Keys
+1. **Sonarr API Key**: Found in Sonarr Settings → General → Security → API Key
+2. **Radarr API Key**: Found in Radarr Settings → General → Security → API Key  
+3. **SABnzbd API Key**: Found in SABnzbd Config → General → SABnzbd Web Server → API Key
+4. **TMDB API Key**: Register at themoviedb.org and create an API key
+5. **Google Gemini AI API Key**: Get from Google AI Studio (ai.google.dev)
 
-## Configuration
+### Configuration
+1. Download and host the `index.html` file on your web server
+2. Access MediaDock through your web browser
+3. Navigate to Settings and enter your API keys and service URLs
+4. Configure your preferred default page and TV tab
+5. Enable Gemini AI for enhanced descriptions and recommendations
 
-MediaDock uses embedded configuration directly in the HTML file. This approach works with any basic HTTP server and keeps your API keys local while allowing safe GitHub deployment.
+### Service URLs
+Configure your service URLs in the format:
+- Sonarr: `http://your-server-ip:8989`
+- Radarr: `http://your-server-ip:7878`
+- SABnzbd: `http://your-server-ip:8080`
 
-### Required APIs
+## 📱 Usage Guide
 
-1. **TMDB API Key (Required)**
-   - Sign up at [TheMovieDB](https://www.themoviedb.org/settings/api)
-   - Generate a v3 API key
-   - Add to `tmdbApi` field in config.json
+### Navigation
+- **Desktop**: Use the sidebar navigation to switch between sections
+- **Mobile**: Use the bottom navigation bar for easy thumb access
 
-2. **Gemini AI API Key (Optional)**
-   - Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-   - Add to `geminiApi` field in config.json
+### Adding Content
+1. **Search**: Use the search tabs in Movies or TV Shows sections
+2. **Browse**: Look through recommendations or recently added content
+3. **Add**: Click the "Add to Radarr/Sonarr" button on any content card
+4. **Monitor**: Content will automatically be monitored and searched
 
-3. **Media Server Configuration (Optional)**
-   - **Sonarr**: Enter server URL and API key from Settings > General > Security
-   - Get API key from Sonarr Settings > General > API Key
+### AI Recommendations
+1. **Generate**: Click "Get AI Recommendations" or use mood-based search
+2. **Describe**: Enter natural language descriptions like "funny romantic comedies"
+3. **Browse**: Review AI-generated recommendations with explanations
+4. **Add**: Add interesting recommendations directly to your library
 
-4. **Radarr Configuration**
-   - Enter your Radarr server URL (e.g., `http://localhost:7878`)
-   - Get API key from Radarr Settings > General > API Key
+### Content Discovery
+- **Flip Cards**: Click any content card to reveal detailed information
+- **Watch Trailers**: Click the play button to watch trailers on YouTube
+- **View Details**: Click "View on TMDB" for comprehensive information
+- **Track Downloads**: Monitor progress in the Downloads section
 
-   - **Radarr**: Enter server URL and API key from Settings > General > Security
-   - **SABnzbd**: Enter server URL and API key from Config > General > API Key
+## 🎯 Features by Section
 
-### In-App Settings Configuration
+### Movies Page
+- Recently Added tab with paginated browsing
+- Search tab with TMDB integration
+- Card flip animations with movie details
+- Direct Radarr integration for adding movies
+- Trailer viewing and TMDB linking
 
-MediaDock includes a comprehensive Settings page for easy configuration:
+### TV Shows Page  
+- Calendar tab with intelligent date formatting
+- Recently Added tab with episode information
+- Search tab for discovering new series
+- Sonarr integration with automatic monitoring
+- Episode tracking and air date information
 
-1. Navigate to the Settings page in MediaDock
-2. Enter your server URLs and API keys in the clearly labeled form fields:
-   - **Sonarr Configuration**: Server URL and API key with instructions
-   - **Radarr Configuration**: Server URL and API key with instructions  
-   - **SABnzbd Configuration**: Server URL and API key with instructions
-   - **TMDB API**: API key with link to registration
-   - **Gemini AI**: API key with setup instructions
-   - **Default Page**: Choose which page loads on startup
-3. Click "Apply Settings" to save your configuration
-4. Settings are applied immediately without requiring a page refresh
+### Recommended Page
+- AI-powered movie and TV show recommendations
+- Mood-based search functionality
+- Library analysis for personalized suggestions
+- Recommendation reasoning and explanations
+- Toggle between movie and TV recommendations
 
-**Note**: All API keys and settings are stored locally in your browser and never transmitted to external servers.
+### Downloads Page
+- SABnzbd history with status tracking
+- Download size and completion date information
+- Status indicators for completed/failed downloads
+- Refresh functionality for real-time updates
 
-## Usage
+### Settings Page
+- Comprehensive API configuration
+- Gemini AI toggle and preferences
+- Default page and tab settings
+- Library statistics display
+- Reset to defaults functionality
 
-### Movies
-- Search for movies using the search bar
-- Click on movie cards to flip and see details
-- Add movies directly to Radarr
-- Watch trailers and view TMDB pages
+## 🔒 Privacy & Security
 
-### TV Shows
-- **Calendar**: View upcoming episodes grouped by day (Today, Tomorrow, weekdays) - loads by default
-- **Search**: Find TV shows and add them to Sonarr with "Load More" functionality that replaces current results
-- **Recently Added**: Dedicated section showing latest TV series added to your collection
-- Episode information includes air times and series details
-- Smart tab switching: Calendar tab is default, clicking TV Shows again switches to Search
+- All API keys are stored locally in your browser
+- No data is transmitted to external servers except for configured services
+- Gemini AI queries are sent directly to Google's API
+- TMDB searches use official API endpoints
+- All service communications use your configured API keys
 
-### Downloads
-- Monitor SABnzbd download history
-- View download status and progress
+## 🎨 Design Philosophy
 
-## Features in Detail
+MediaDock prioritizes user experience with:
+- **Clean Interface**: Minimal clutter with focus on content
+- **Responsive Design**: Seamless experience across all devices  
+- **Intelligent Features**: AI assistance without complexity
+- **Fast Performance**: Optimized loading and smooth animations
+- **Intuitive Navigation**: Clear organization and easy discovery
 
-### Responsive Design
-- **Mobile**: Bottom navigation, single-column layout
-- **Desktop**: Sidebar navigation, multi-column grids, Quick Stats panel
+## 🔄 Updates & Maintenance
 
-### Smart Navigation
-- TV page defaults to calendar on initial load
-- Clicking TV Shows again switches to search tab
-- Configurable default landing page
+MediaDock is designed for easy maintenance:
+- **Self-Contained**: Single HTML file with embedded CSS and JavaScript
+- **API-Driven**: Automatically adapts to service updates
+- **Settings Persistence**: Configuration saved in browser storage
+- **Error Handling**: Graceful degradation when services are unavailable
 
-### Card Interactions
-- Smooth flip animations reveal detailed information with persistent titles during transitions
-- AI-generated descriptions for better content discovery
-- Direct integration with media management services
-- Enhanced visual feedback and improved user experience
+## 🤝 Contributing
 
-### Real-time Data
-- Dynamic API configuration fetching
-- Live calendar updates
-- Download status monitoring
+MediaDock is open source and welcomes contributions:
+- Report bugs through GitHub issues
+- Suggest features and improvements
+- Submit pull requests with enhancements
+- Share configuration tips and best practices
 
-## Development
+## 📄 License
 
-### Project Structure
-```
-mediadock/
-├── index.html          # Main application file
-├── README.md          # This file
-└── .replit           # Replit configuration
-```
-
-### Key Components
-- **Navigation System**: Responsive mobile/desktop navigation
-- **Search Functions**: TMDB API integration for movies and TV shows
-- **Media Integration**: Direct API calls to Sonarr, Radarr, SABnzbd
-- **AI Enhancement**: Gemini AI for content descriptions
-- **Storage**: Local storage for user settings and preferences
-
-## Browser Support
-
-- Chrome/Chromium (recommended)
-- Firefox
-- Safari
-- Edge
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## API Rate Limits
-
-Please be aware of API rate limits:
-- **TMDB**: 40 requests per 10 seconds
-- **Gemini AI**: Varies by plan
-- **Arr Services**: No strict limits for local instances
-
-## Troubleshooting
-
-### Common Issues
-
-1. **API Keys Not Working**
-   - Verify all API keys are correctly entered
-   - Check that services are accessible from your network
-   - Ensure CORS is properly configured for local development
-
-2. **Services Not Connecting**
-   - Verify URLs are correct and accessible
-   - Check firewall settings
-   - Ensure services are running
-
-3. **Search Not Working**
-   - Confirm TMDB API key is valid
-   - Check browser console for error messages
-
-### Getting Help
-
-- Check the browser console for error messages
-- Verify all required APIs are configured
-- Ensure media services are running and accessible
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [TMDB](https://www.themoviedb.org/) for movie and TV show data
-- [Sonarr](https://sonarr.tv/) and [Radarr](https://radarr.video/) for media management
-- [SABnzbd](https://sabnzbd.org/) for download management
-- [Gemini AI](https://ai.google.dev/) for intelligent content descriptions
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Lucide](https://lucide.dev/) for icons
-
-## Recent Updates
-
-### v2.1.1 - Security & Documentation Update
-- ✅ Removed exposed API keys from all files for security compliance
-- ✅ Enhanced .gitignore to prevent future exposure of sensitive data
-- ✅ Updated documentation with correct line numbers and security best practices
-- ✅ Cleaned up attached assets to remove console logs containing API keys
-
-### v2.1.0 - Enhanced User Experience
-- ✅ Fixed card flip animations with persistent titles during transitions
-- ✅ Improved TV Shows "Load More" functionality to replace results instead of extending
-- ✅ Enhanced Settings page with clear field descriptions and API key guidance
-- ✅ Removed confusing elements from Settings interface for better user experience
-- ✅ Fixed TV Shows tab navigation with Calendar as default and intelligent tab switching
-- ✅ Added Recently Added sections for both Movies and TV Shows
-- ✅ Implemented consistent 2-column mobile grid layouts across all sections
-- ✅ Enhanced Quick Stats panel with real-time movie and TV series counts
-
-### v2.0.0 - Major Interface Overhaul
-- ✅ Responsive design with desktop sidebar navigation and mobile bottom navigation
-- ✅ Card flip animations for interactive content discovery
-- ✅ TV Shows Calendar with grouped upcoming episodes
-- ✅ Gemini AI integration for intelligent content descriptions
-- ✅ Multi-service API integration (Sonarr, Radarr, SABnzbd, TMDB)
-
-## Roadmap
-
-- [ ] User authentication and multi-user support
-- [ ] Custom themes and color schemes
-- [ ] Mobile app companion
-- [ ] Advanced filtering and sorting options
-- [ ] Automated recommendations based on viewing history
-- [ ] Integration with additional media services (Plex, Jellyfin)
-- [ ] Notification system for new episodes and downloads
+MediaDock is released under the MIT License, allowing free use, modification, and distribution.
 
 ---
 
-**MediaDock** - Your personal media management hub
+**MediaDock** - Transforming media management with AI-powered intelligence and intuitive design.
